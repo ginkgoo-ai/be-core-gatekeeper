@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ginkgoo AI Gateway Keeper - Questionnaire Results</title>
+    <style>
+        :root {
+            /* New Color Palette - Inspired by Buffer & Your Logo */
+            --primary-brand: #7F56D9; /* Purple from your logo */
+            --primary-brand-hover: #6941C6;
+            --primary-brand-light: #F9F5FF; /* Light purple */
+            --primary-brand-text: #FFFFFF;
+
+            --text-primary: #101828; /* Dark gray for text */
+            --text-secondary: #475467;
+            --text-tertiary: #667085;
+            --text-placeholder: #98A2B3;
+            --text-white: #FFFFFF;
+            --text-link: var(--primary-brand);
+
+            --bg-page: #F9FAFB; /* Light gray for page background */
+            --bg-card: #FFFFFF; /* White for cards/content areas */
+            --bg-input: #FFFFFF;
+            --bg-input-disabled: #F2F4F7;
+            --bg-hover-light: #F9FAFB; /* For table row hover, etc. */
+
+            --border-color-strong: #D0D5DD; /* For input fields, card borders */
+            --border-color-light: #EAECF0; /* For dividers */
+            --border-focus-ring: rgba(127, 86, 217, 0.25); /* Purple focus ring */
+
+            --success-main: #039855;
+            --success-bg: #ECFDF3;
+            --success-border: #ABEFC6;
+            --success-text: #027A48;
+
+            --warning-main: #F79009;
+            --warning-bg: #FFFAEB;
+            --warning-border: #FEDF89;
+            --warning-text: #B54708;
+
+            --danger-main: #D92D20;
+            --danger-bg: #FEF3F2;
+            --danger-border: #FECDCA;
+            --danger-text: #B42318;
+
+            /* Typography */
+            --font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+            --font-size-xs: 0.75rem; /* 12px */
+            --font-size-sm: 0.875rem; /* 14px */
+            --font-size-md: 1rem; /* 16px */
+            --font-size-lg: 1.125rem; /* 18px */
+            --font-size-xl: 1.25rem; /* 20px */
+            --font-size-2xl: 1.5rem; /* 24px */
+            --font-size-3xl: 1.875rem; /* 30px */
+
+            --font-weight-regular: 400;
+            --font-weight-medium: 500;
+            --font-weight-semibold: 600;
+            --font-weight-bold: 700;
+
+            /* Spacing & Sizing */
+            --spacing-xxs: 0.25rem; /* 4px */
+            --spacing-xs: 0.5rem; /* 8px */
+            --spacing-sm: 0.75rem; /* 12px */
+            --spacing-md: 1rem; /* 16px */
+            --spacing-lg: 1.5rem; /* 24px */
+            --spacing-xl: 2rem; /* 32px */
+            --spacing-2xl: 2.5rem; /* 40px */
+
+            /* Borders & Shadows */
+            --border-radius-sm: 4px;
+            --border-radius-md: 6px;
+            --border-radius-lg: 8px;
+            --border-radius-xl: 12px;
+
+            --shadow-xs: 0px 1px 2px 0px rgba(16, 24, 40, 0.05);
+            --shadow-sm: 0px 1px 2px 0px rgba(16, 24, 40, 0.06), 0px 1px 3px 0px rgba(16, 24, 40, 0.10);
+            --shadow-md: 0px 2px 4px -2px rgba(16, 24, 40, 0.06), 0px 4px 8px -2px rgba(16, 24, 40, 0.10);
+        }
+
+        /* Global Resets & Base Styles */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            font-size: 100%; /* 16px base */
+        }
+
+        body {
+            font-family: var(--font-family);
+            font-size: var(--font-size-md);
+            line-height: 1.5;
+            color: var(--text-primary);
+            background-color: var(--bg-page);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .page-container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: var(--spacing-lg) var(--spacing-xl);
+        }
+
+        /* Typography Helpers */
+        h1, h2, h3, h4, h5, h6 {
+            font-weight: var(--font-weight-semibold);
+            color: var(--text-primary);
+        }
+
+        h1 {
+            font-size: var(--font-size-3xl);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        h2 {
+            font-size: var(--font-size-2xl);
+            margin-bottom: var(--spacing-md);
+        }
+
+        h3 {
+            font-size: var(--font-size-xl);
+            margin-bottom: var(--spacing-sm);
+        }
+
+        a {
+            color: var(--text-link);
+            text-decoration: none;
+            font-weight: var(--font-weight-medium);
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        /* Page Header */
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: var(--spacing-lg);
+            margin-bottom: var(--spacing-xl);
+            border-bottom: 1px solid var(--border-color-light);
+        }
+
+        .page-header .logo-title {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+        }
+
+        .page-header .logo {
+            height: 40px;
+            width: auto;
+        }
+
+        .page-header h1 { /* This h1 is for the specific page title in the header */
+            font-size: var(--font-size-2xl);
+            margin-bottom: 0;
+        }
+
+        /* Card Styling */
+        .card {
+            background-color: var(--bg-card);
+            border-radius: var(--border-radius-lg);
+            box-shadow: var(--shadow-sm);
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .card-header {
+            padding: var(--spacing-md) var(--spacing-lg);
+            border-bottom: 1px solid var(--border-color-light);
+        }
+
+        .card-header h2, .card-header h3 { /* h2 inside card header */
+            font-size: var(--font-size-lg);
+            font-weight: var(--font-weight-medium);
+            margin-bottom: 0;
+        }
+
+        .card-body {
+            padding: var(--spacing-lg);
+        }
+
+        .card-footer {
+            padding: var(--spacing-md) var(--spacing-lg);
+            border-top: 1px solid var(--border-color-light);
+            background-color: var(--bg-hover-light);
+            border-bottom-left-radius: var(--border-radius-lg);
+            border-bottom-right-radius: var(--border-radius-lg);
+        }
+
+        /* Button Styles (copied from forms-list-buffer) */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            height: auto;
+            padding: var(--spacing-xs) var(--spacing-md);
+            font-size: var(--font-size-sm);
+            font-weight: var(--font-weight-semibold);
+            line-height: 1.25rem;
+            text-align: center;
+            text-decoration: none;
+            border-radius: var(--border-radius-md);
+            cursor: pointer;
+            transition: background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+            border: 1px solid transparent;
+            box-shadow: var(--shadow-xs);
+        }
+
+        .btn:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px var(--border-focus-ring), var(--shadow-xs);
+        }
+
+        .btn:disabled {
+            opacity: 0.65;
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-brand);
+            color: var(--primary-brand-text);
+            border-color: var(--primary-brand);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-brand-hover);
+            border-color: var(--primary-brand-hover);
+            text-decoration: none;
+        }
+
+        .btn-secondary {
+            background-color: var(--bg-card);
+            color: var(--text-secondary);
+            border-color: var(--border-color-strong);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--bg-hover-light);
+            text-decoration: none;
+        }
+
+        /* Add other button types if needed (e.g., .btn-danger) */
+
+        /* Table Styling (copied from forms-list-buffer) */
+        .table-wrapper {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            border-spacing: 0;
+            font-size: var(--font-size-sm);
+        }
+
+        th, td {
+            padding: var(--spacing-sm) var(--spacing-md);
+            text-align: left;
+            border-bottom: 1px solid var(--border-color-light);
+            vertical-align: middle;
+        }
+
+        th {
+            font-weight: var(--font-weight-medium);
+            color: var(--text-secondary);
+            background-color: var(--bg-hover-light);
+            text-transform: uppercase;
+            font-size: var(--font-size-xs);
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover td {
+            background-color: #F9FAFB;
+        }
+
+        /* Flash Messages (copied and adapted) */
+        .flash-message {
+            padding: var(--spacing-md);
+            margin-bottom: var(--spacing-lg);
+            border-radius: var(--border-radius-md);
+            font-size: var(--font-size-sm);
+            border: 1px solid transparent;
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+        }
+
+        /* .flash-message svg { width: 20px; height: 20px; } */ /* Icon support */
+
+        .flash-message.error { /* Renamed from .error-message for consistency */
+            background-color: var(--danger-bg);
+            color: var(--danger-text);
+            border-color: var(--danger-border);
+        }
+
+        /* Add .success and .info if needed from forms-list-buffer */
+
+        /* No Results Message (copied and adapted) */
+        .no-results-message { /* Renamed from .no-results for consistency */
+            text-align: center;
+            padding: var(--spacing-xl) 0; /* Adjusted padding */
+            color: var(--text-secondary);
+            /* Removed background, border, shadow as it's inside a card now */
+        }
+
+        .no-results-message p {
+            font-size: var(--font-size-md);
+        }
+
+        /* Preformatted text for JSON */
+        pre {
+            background-color: var(--bg-hover-light); /* Lighter than original */
+            border: 1px solid var(--border-color-light); /* Consistent border */
+            padding: var(--spacing-sm);
+            border-radius: var(--border-radius-md);
+            white-space: pre-wrap;
+            word-break: break-all;
+            font-size: var(--font-size-xs); /* Smaller for dense data */
+            color: var(--text-secondary);
+        }
+    </style>
+</head>
+<body>
+
+<div class="page-container">
+    <header class="page-header">
+        <div class="logo-title">
+            <img th:src="@{https://uploads.linear.app/fee8b358-afe7-4f9d-8ec6-bbcc84fb2a90/aa77c589-9a7f-4c32-9403-547ffb4a2616/256x256/65e10f8a-3bf4-4aa9-86ad-4b4713e1a8db}"
+                 alt="Logo" class="logo"/>
+            <h1>Ginkgoo AI Gateway Keeper</h1>
+        </div>
+        <a th:href="@{/admin/forms}" class="btn btn-secondary">&larr; Back to Form List</a>
+    </header>
+
+    <div class="card">
+        <div class="card-body">
+            <div th:if="${errorMessage}" class="flash-message error">
+                <p th:text="${errorMessage}">Error message text</p>
+            </div>
+
+            <div th:if="${formDefinition}">
+                <!-- Using card-header for the title of the content if appropriate -->
+                <div class="card-header"
+                     style="padding-left:0; padding-right:0; border-bottom: none; margin-bottom: var(--spacing-md);">
+                    <h2 th:text="|Results for: ${formDefinition.name} (ID: ${formDefinition.id})|"
+                        style="font-size: var(--font-size-xl); font-weight:var(--font-weight-semibold);">Form Name</h2>
+                </div>
+
+                <div th:if="${#lists.isEmpty(questionnaireResults)}" class="no-results-message">
+                    <p>No results found for this questionnaire.</p>
+                </div>
+
+                <div class="table-wrapper" th:if="${not #lists.isEmpty(questionnaireResults)}">
+                    <table>
+                        <thead>
+                        <tr>
+                            <th>Submission ID</th>
+                            <th>User ID</th>
+                            <th>Submitted At</th>
+                            <th>Response Data</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="result : ${questionnaireResults}">
+                            <td th:text="${result.id}"
+                                style="font-size: var(--font-size-xs); color: var(--text-tertiary);"></td>
+                            <td th:text="${result.userId ?: 'N/A'}"></td>
+                            <td th:text="${result.createdAt != null ? #temporals.format(result.createdAt, 'dd MMM yyyy, HH:mm') : 'N/A'}"></td>
+                            <td>
+                                <pre th:text="${objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(result.responseData)}"></pre>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div th:unless="${formDefinition}" class="no-results-message">
+                <p>Form definition not found or could not be loaded.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html> 

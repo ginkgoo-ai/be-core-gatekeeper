@@ -1,0 +1,1427 @@
+/* Buffer UI CSS Framework */
+
+:root {
+    /* Buffer UI Color Palette */
+    --primary-blue: #2c4bff;
+    --primary-blue-hover: #0000FF;
+    --primary-blue-light: #f4f4ff;
+    --primary-gray: #323b43;
+    --secondary-gray: #59626a;
+    --tertiary-gray: #88979f;
+    --gray-light: #ced7df;
+    --gray-lighter: #f1f1f4;
+    --white: #ffffff;
+    --success-green: #39B54A;
+    --success-green-hover: #2c913b;
+    --warning-yellow: #ffa000;
+    --warning-yellow-hover: #e69100;
+    --danger-red: #ff3c00;
+    --danger-red-hover: #e63600;
+
+    /* Spacing & Sizing */
+    --spacing-small: 8px;
+    --spacing-medium: 16px;
+    --spacing-large: 24px;
+    --spacing-extra-large: 32px;
+
+    /* Typography */
+    --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --font-size-small: 12px;
+    --font-size-normal: 14px;
+    --font-size-medium: 16px;
+    --font-size-large: 20px;
+    --font-weight-normal: 400;
+    --font-weight-medium: 500;
+    --font-weight-bold: 600;
+
+    /* Borders & Shadows */
+    --border-radius-small: 4px;
+    --border-radius-medium: 8px;
+    --box-shadow-card: 0 2px 8px rgba(0, 0, 0, 0.08);
+    --box-shadow-heavy: 0 4px 16px rgba(0, 0, 0, 0.16);
+
+    /* New Color Palette - Inspired by Buffer & Your Logo */
+    --primary-brand: #7F56D9; /* Purple from your logo */
+    --primary-brand-hover: #6941C6;
+    --primary-brand-light: #F9F5FF; /* Light purple */
+    --primary-brand-text: #FFFFFF;
+
+    --text-primary: #101828; /* Dark gray for text */
+    --text-secondary: #475467;
+    --text-tertiary: #667085;
+    --text-placeholder: #98A2B3;
+    --text-white: #FFFFFF;
+    --text-link: var(--primary-brand);
+
+    --bg-page: #F9FAFB; /* Light gray for page background */
+    --bg-card: #FFFFFF; /* White for cards/content areas */
+    --bg-input: #FFFFFF;
+    --bg-input-disabled: #F2F4F7;
+    --bg-hover-light: #F9FAFB; /* For table row hover, etc. */
+
+    --border-color-strong: #D0D5DD; /* For input fields, card borders */
+    --border-color-light: #EAECF0; /* For dividers */
+    --border-focus-ring: rgba(127, 86, 217, 0.25); /* Purple focus ring */
+
+    --success-main: #039855;
+    --success-bg: #ECFDF3;
+    --success-border: #ABEFC6;
+    --success-text: #027A48;
+
+    --warning-main: #F79009;
+    --warning-bg: #FFFAEB;
+    --warning-border: #FEDF89;
+    --warning-text: #B54708;
+
+    --danger-main: #D92D20;
+    --danger-bg: #FEF3F2;
+    --danger-border: #FECDCA;
+    --danger-text: #B42318;
+
+    /* Typography */
+    --font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+    --font-size-xs: 0.75rem; /* 12px */
+    --font-size-sm: 0.875rem; /* 14px */
+    --font-size-md: 1rem; /* 16px */
+    --font-size-lg: 1.125rem; /* 18px */
+    --font-size-xl: 1.25rem; /* 20px */
+    --font-size-2xl: 1.5rem; /* 24px */
+    --font-size-3xl: 1.875rem; /* 30px */
+
+    --font-weight-regular: 400;
+    --font-weight-medium: 500;
+    --font-weight-semibold: 600;
+    --font-weight-bold: 700;
+
+    /* Spacing & Sizing */
+    --spacing-xxs: 0.25rem; /* 4px */
+    --spacing-xs: 0.5rem; /* 8px */
+    --spacing-sm: 0.75rem; /* 12px */
+    --spacing-md: 1rem; /* 16px */
+    --spacing-lg: 1.5rem; /* 24px */
+    --spacing-xl: 2rem; /* 32px */
+    --spacing-2xl: 2.5rem; /* 40px */
+
+    /* Borders & Shadows */
+    --border-radius-sm: 4px;
+    --border-radius-md: 6px;
+    --border-radius-lg: 8px;
+    --border-radius-xl: 12px;
+
+    --shadow-xs: 0px 1px 2px 0px rgba(16, 24, 40, 0.05);
+    --shadow-sm: 0px 1px 2px 0px rgba(16, 24, 40, 0.06), 0px 1px 3px 0px rgba(16, 24, 40, 0.10);
+    --shadow-md: 0px 2px 4px -2px rgba(16, 24, 40, 0.06), 0px 4px 8px -2px rgba(16, 24, 40, 0.10);
+}
+
+/* Base Styles */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: var(--font-family);
+    font-size: var(--font-size-normal);
+    line-height: 1.5;
+    color: var(--primary-gray);
+    background-color: var(--gray-lighter);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Layout */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: var(--spacing-large);
+}
+
+/* Typography */
+h1, h2, h3, h4, h5, h6 {
+    color: var(--primary-gray);
+    font-weight: var(--font-weight-bold);
+    margin-bottom: var(--spacing-medium);
+}
+
+h1 {
+    font-size: var(--font-size-large);
+}
+
+h2 {
+    font-size: calc(var(--font-size-medium) + 2px);
+}
+
+h3 {
+    font-size: var(--font-size-medium);
+}
+
+/* Header & Page Title */
+header {
+    background-color: var(--white);
+    padding: var(--spacing-large);
+    margin-bottom: var(--spacing-extra-large);
+    border-radius: var(--border-radius-medium);
+    box-shadow: var(--box-shadow-card);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Cards */
+.card {
+    background-color: var(--white);
+    padding: var(--spacing-large);
+    margin-bottom: var(--spacing-extra-large);
+    border-radius: var(--border-radius-medium);
+    box-shadow: var(--box-shadow-card);
+}
+
+/* Forms */
+.form-group {
+    margin-bottom: var(--spacing-large);
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: var(--spacing-small);
+    font-weight: var(--font-weight-medium);
+    color: var(--primary-gray);
+}
+
+.form-description {
+    font-size: var(--font-size-small);
+    color: var(--secondary-gray);
+    margin-bottom: var(--spacing-small);
+}
+
+.form-control {
+    width: 100%;
+    padding: var(--spacing-small) var(--spacing-medium);
+    font-size: var(--font-size-normal);
+    color: var(--primary-gray);
+    background-color: var(--white);
+    border: 1px solid var(--gray-light);
+    border-radius: var(--border-radius-small);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: var(--primary-blue);
+    box-shadow: 0 0 0 2px rgba(44, 75, 255, 0.2);
+}
+
+textarea.form-control {
+    min-height: 120px;
+    resize: vertical;
+}
+
+select.form-control {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2388979f' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    padding-right: 30px;
+}
+
+/* Buttons */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 36px;
+    padding: 0 var(--spacing-large);
+    font-size: var(--font-size-normal);
+    font-weight: var(--font-weight-medium);
+    line-height: 1;
+    text-align: center;
+    text-decoration: none;
+    border-radius: var(--border-radius-small);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
+}
+
+.btn-primary {
+    background-color: var(--primary-blue);
+    color: var(--white);
+    border-color: var(--primary-blue);
+}
+
+.btn-primary:hover {
+    background-color: var(--primary-blue-hover);
+    border-color: var(--primary-blue-hover);
+}
+
+.btn-secondary {
+    background-color: var(--white);
+    color: var(--primary-gray);
+    border: 1px solid var(--gray-light);
+}
+
+.btn-secondary:hover {
+    background-color: var(--gray-lighter);
+}
+
+.btn-success {
+    background-color: var(--success-green);
+    color: var(--white);
+    border-color: var(--success-green);
+}
+
+.btn-success:hover {
+    background-color: var(--success-green-hover);
+    border-color: var(--success-green-hover);
+}
+
+.btn-danger {
+    background-color: var(--danger-red);
+    color: var(--white);
+    border-color: var(--danger-red);
+}
+
+.btn-danger:hover {
+    background-color: var(--danger-red-hover);
+    border-color: var(--danger-red-hover);
+}
+
+.btn-sm {
+    height: 32px;
+    padding: 0 var(--spacing-medium);
+    font-size: var(--font-size-small);
+}
+
+.add-btn {
+    background-color: var(--success-green);
+    color: var(--white);
+    border-color: var(--success-green);
+    padding: 0 var(--spacing-medium);
+    height: 32px;
+    font-size: var(--font-size-small);
+}
+
+.add-btn:hover {
+    background-color: var(--success-green-hover);
+    border-color: var(--success-green-hover);
+}
+
+.remove-btn {
+    background-color: var(--danger-red);
+    color: var(--white);
+    border-color: var(--danger-red);
+    padding: 0 var(--spacing-medium);
+    height: 32px;
+    font-size: var(--font-size-small);
+    float: right;
+}
+
+.remove-btn:hover {
+    background-color: var(--danger-red-hover);
+    border-color: var(--danger-red-hover);
+}
+
+/* Table Styling */
+.table-container {
+    background-color: var(--white);
+    border-radius: var(--border-radius-medium);
+    box-shadow: var(--box-shadow-card);
+    overflow: hidden;
+    margin-bottom: var(--spacing-extra-large);
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th, td {
+    padding: var(--spacing-medium);
+    text-align: left;
+    border-bottom: 1px solid var(--gray-light);
+}
+
+th {
+    font-size: var(--font-size-small);
+    font-weight: var(--font-weight-medium);
+    color: var(--secondary-gray);
+    background-color: var(--gray-lighter);
+}
+
+td {
+    font-size: var(--font-size-normal);
+    vertical-align: middle;
+}
+
+tr:last-child td {
+    border-bottom: none;
+}
+
+tr:hover {
+    background-color: var(--primary-blue-light);
+}
+
+/* Status indicators */
+.status-indicator {
+    display: inline-flex;
+    align-items: center;
+    padding: 0 var(--spacing-small);
+    height: 24px;
+    border-radius: 12px;
+    font-size: var(--font-size-small);
+    font-weight: var(--font-weight-medium);
+}
+
+.status-active {
+    background-color: rgba(57, 181, 74, 0.1);
+    color: var(--success-green);
+}
+
+.status-draft {
+    background-color: rgba(136, 151, 159, 0.1);
+    color: var(--secondary-gray);
+}
+
+.status-archived {
+    background-color: rgba(255, 160, 0, 0.1);
+    color: var(--warning-yellow);
+}
+
+/* Action Buttons in Table */
+.actions {
+    display: flex;
+    gap: var(--spacing-small);
+}
+
+/* Pagination */
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: var(--spacing-small);
+    margin-top: var(--spacing-large);
+}
+
+.pagination a,
+.pagination span {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 32px;
+    height: 32px;
+    padding: 0 var(--spacing-small);
+    font-size: var(--font-size-normal);
+    text-decoration: none;
+    border-radius: var(--border-radius-small);
+}
+
+.pagination a {
+    color: var(--primary-blue);
+    background-color: var(--white);
+    border: 1px solid var(--gray-light);
+}
+
+.pagination a:hover {
+    background-color: var(--primary-blue-light);
+    border-color: var(--primary-blue);
+}
+
+.pagination span.current {
+    color: var(--white);
+    background-color: var(--primary-blue);
+    border: 1px solid var(--primary-blue);
+}
+
+.pagination span.disabled {
+    color: var(--tertiary-gray);
+    background-color: var(--gray-lighter);
+    border: 1px solid var(--gray-light);
+    cursor: not-allowed;
+}
+
+/* Messages */
+.message {
+    padding: var(--spacing-medium);
+    margin-bottom: var(--spacing-large);
+    border-radius: var(--border-radius-small);
+    font-size: var(--font-size-normal);
+}
+
+.info-message {
+    background-color: rgba(44, 75, 255, 0.1);
+    color: var(--primary-blue);
+    border-left: 4px solid var(--primary-blue);
+}
+
+.error-message {
+    background-color: rgba(255, 60, 0, 0.1);
+    color: var(--danger-red);
+    border-left: 4px solid var(--danger-red);
+}
+
+/* Form Actions */
+.form-actions {
+    display: flex;
+    gap: var(--spacing-medium);
+    margin-top: var(--spacing-extra-large);
+    padding-top: var(--spacing-large);
+    border-top: 1px solid var(--gray-light);
+}
+
+/* Nested Items */
+.nested-item {
+    border: 1px solid var(--gray-light);
+    padding: var(--spacing-large);
+    margin-top: var(--spacing-medium);
+    margin-bottom: var(--spacing-medium);
+    border-radius: var(--border-radius-small);
+    background-color: var(--white);
+    box-shadow: var(--box-shadow-card);
+    position: relative;
+}
+
+/* Section Styling */
+.section {
+    border-left: 3px solid var(--primary-blue);
+}
+
+.field {
+    margin-left: 20px;
+    border-left: 3px solid var(--secondary-gray);
+}
+
+.validation-rule {
+    margin-left: 40px;
+    border-left: 3px solid var(--warning-yellow);
+}
+
+/* View Toggle Buttons */
+.view-toggle {
+    display: flex;
+    margin-bottom: var(--spacing-large);
+    border-radius: var(--border-radius-small);
+    overflow: hidden;
+    border: 1px solid var(--gray-light);
+}
+
+.view-toggle button {
+    flex: 1;
+    padding: var(--spacing-small) var(--spacing-medium);
+    background: var(--white);
+    border: none;
+    border-left: 1px solid var(--gray-light);
+    cursor: pointer;
+    font-size: var(--font-size-normal);
+    color: var(--secondary-gray);
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.view-toggle button:first-child {
+    border-left: none;
+}
+
+.view-toggle button.active {
+    background-color: var(--primary-blue);
+    color: var(--white);
+    font-weight: var(--font-weight-medium);
+}
+
+.view-toggle button:hover:not(.active) {
+    background-color: var(--gray-lighter);
+}
+
+/* JSON Panel */
+.json-panel {
+    border: 1px solid var(--gray-light);
+    padding: var(--spacing-large);
+    margin-bottom: var(--spacing-large);
+    border-radius: var(--border-radius-small);
+    background-color: var(--gray-lighter);
+    box-shadow: var(--box-shadow-card);
+}
+
+.json-editor-container {
+    position: relative;
+    border: 1px solid var(--gray-light);
+    border-radius: var(--border-radius-small);
+    overflow: hidden;
+    margin-bottom: var(--spacing-medium);
+}
+
+/* Helper Classes */
+hr {
+    border: 0;
+    border-top: 1px solid var(--gray-light);
+    margin: var(--spacing-large) 0;
+}
+
+/* Back Link */
+.back-link {
+    display: inline-flex;
+    align-items: center;
+    color: var(--primary-blue);
+    text-decoration: none;
+    margin-bottom: var(--spacing-medium);
+}
+
+.back-link:hover {
+    text-decoration: underline;
+}
+
+.back-link-icon {
+    margin-right: var(--spacing-small);
+}
+
+/* Page Header */
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: var(--spacing-lg);
+    margin-bottom: var(--spacing-xl);
+    border-bottom: 1px solid var(--border-color-light);
+}
+
+.page-header .logo-title {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+}
+
+.page-header .logo {
+    height: 40px; /* Adjust as needed */
+    width: auto;
+}
+
+.page-header h1 {
+    font-size: var(--font-size-2xl);
+    margin-bottom: 0; /* Reset margin for h1 in header */
+}
+
+/* Copied from forms-list-buffer.html START */
+html {
+    font-size: 100%; /* 16px base */
+}
+
+body {
+    font-family: var(--font-family);
+    font-size: var(--font-size-md);
+    line-height: 1.5;
+    color: var(--text-primary);
+    background-color: var(--bg-page);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.page-container { /* Renamed .container to .page-container */
+    max-width: 1280px; /* Wider container for admin panel */
+    margin: 0 auto;
+    padding: var(--spacing-lg) var(--spacing-xl);
+}
+
+/* Typography Helpers */
+h1, h2, h3, h4, h5, h6 {
+    font-weight: var(--font-weight-semibold);
+    color: var(--text-primary);
+}
+
+h1 {
+    font-size: var(--font-size-3xl);
+    margin-bottom: var(--spacing-lg);
+}
+
+h2 {
+    font-size: var(--font-size-2xl);
+    margin-bottom: var(--spacing-md);
+}
+
+h3 {
+    font-size: var(--font-size-xl);
+    margin-bottom: var(--spacing-sm);
+}
+
+a {
+    color: var(--text-link);
+    text-decoration: none;
+    font-weight: var(--font-weight-medium);
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+/* Card Styling */
+.card {
+    background-color: var(--bg-card);
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-sm);
+    margin-bottom: var(--spacing-xl);
+}
+
+.card-header {
+    padding: var(--spacing-md) var(--spacing-lg);
+    border-bottom: 1px solid var(--border-color-light);
+}
+
+.card-header h2, .card-header h3 {
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-medium);
+    margin-bottom: 0;
+}
+
+.card-body {
+    padding: var(--spacing-lg);
+}
+
+.card-footer {
+    padding: var(--spacing-md) var(--spacing-lg);
+    border-top: 1px solid var(--border-color-light);
+    background-color: var(--bg-hover-light); /* Slightly different bg for footer */
+    border-bottom-left-radius: var(--border-radius-lg);
+    border-bottom-right-radius: var(--border-radius-lg);
+}
+
+/* Button Styles */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: auto; /* Auto height for padding to control size */
+    padding: var(--spacing-xs) var(--spacing-md); /* 10px 16px */
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+    line-height: 1.25rem; /* 20px */
+    text-align: center;
+    text-decoration: none;
+    border-radius: var(--border-radius-md);
+    cursor: pointer;
+    transition: background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    border: 1px solid transparent;
+    box-shadow: var(--shadow-xs);
+}
+
+.btn:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--border-focus-ring), var(--shadow-xs);
+}
+
+.btn:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+}
+
+.btn-primary {
+    background-color: var(--primary-brand);
+    color: var(--primary-brand-text);
+    border-color: var(--primary-brand);
+}
+
+.btn-primary:hover {
+    background-color: var(--primary-brand-hover);
+    border-color: var(--primary-brand-hover);
+    text-decoration: none;
+}
+
+.btn-secondary {
+    background-color: var(--bg-card);
+    color: var(--text-secondary);
+    border-color: var(--border-color-strong);
+}
+
+.btn-secondary:hover {
+    background-color: var(--bg-hover-light);
+    text-decoration: none;
+}
+
+.btn-danger {
+    background-color: var(--danger-main);
+    color: var(--text-white);
+    border-color: var(--danger-main);
+}
+
+.btn-danger:hover {
+    background-color: #B42318; /* Darker danger */
+    border-color: #B42318;
+    text-decoration: none;
+}
+
+.btn-sm { /* Smaller buttons for actions in table */
+    padding: var(--spacing-xxs) var(--spacing-sm); /* 6px 12px */
+    font-size: var(--font-size-xs);
+}
+
+/* Specific Action Button Styles in Table */
+.btn-edit { /* Now uses .btn-secondary as base, or can be custom */
+    background-color: var(--warning-bg);
+    color: var(--warning-text);
+    border-color: var(--warning-border);
+}
+
+.btn-edit:hover {
+    background-color: #FFFAEB;
+    border-color: #FEDF89;
+    color: #B54708;
+}
+
+.btn-preview {
+    background-color: var(--bg-input);
+    color: var(--text-secondary);
+    border-color: var(--border-color-strong);
+}
+
+.btn-preview:hover {
+    background-color: var(--bg-hover-light);
+}
+
+.btn-view-results {
+    background-color: var(--primary-brand-light);
+    color: var(--primary-brand);
+    border-color: var(--primary-brand);
+}
+
+.btn-view-results:hover {
+    background-color: #E9D7FE;
+    border-color: #7F56D9;
+    color: #7F56D9;
+}
+
+.btn-status-publish {
+    background-color: var(--success-main);
+    color: var(--text-white);
+    border-color: var(--success-main);
+}
+
+.btn-status-publish:hover {
+    background-color: #027A48;
+}
+
+.btn-status-archive {
+    background-color: var(--warning-main);
+    color: var(--text-white);
+    border-color: var(--warning-main);
+}
+
+.btn-status-archive:hover {
+    background-color: #B54708;
+}
+
+.btn-status-draft {
+    background-color: var(--text-tertiary);
+    color: var(--text-white);
+    border-color: var(--text-tertiary);
+}
+
+.btn-status-draft:hover {
+    background-color: var(--text-secondary);
+}
+
+
+/* Filter Form */
+.filter-bar { /* Replaces .filter-form */
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-lg); /* Remove card margin here */
+}
+
+.filter-bar .form-group {
+    flex: 1 1 200px; /* Allow wrapping */
+}
+
+.filter-bar label {
+    display: block;
+    margin-bottom: var(--spacing-xs);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    color: var(--text-secondary);
+}
+
+.filter-bar input,
+.filter-bar select {
+    width: 100%;
+    height: auto;
+    padding: var(--spacing-xs) var(--spacing-sm); /* 10px 12px */
+    font-size: var(--font-size-sm);
+    color: var(--text-primary);
+    background-color: var(--bg-input);
+    border: 1px solid var(--border-color-strong);
+    border-radius: var(--border-radius-md);
+    box-shadow: var(--shadow-xs);
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.filter-bar input:focus,
+.filter-bar select:focus {
+    outline: none;
+    border-color: var(--primary-brand);
+    box-shadow: 0 0 0 3px var(--border-focus-ring), var(--shadow-xs);
+}
+
+.filter-bar .btn-group {
+    display: flex;
+    gap: var(--spacing-sm);
+    align-items: flex-end;
+    padding-bottom: 1px; /* Align with inputs */
+}
+
+/* Table Styling */
+.table-wrapper { /* Replaces .table-container */
+    overflow-x: auto; /* For responsive tables */
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse; /* Remove collapse if using border-spacing */
+    border-spacing: 0; /* Important with border-collapse:collapse */
+    font-size: var(--font-size-sm);
+}
+
+th, td {
+    padding: var(--spacing-sm) var(--spacing-md); /* 12px 16px */
+    text-align: left;
+    border-bottom: 1px solid var(--border-color-light);
+    vertical-align: middle;
+}
+
+th {
+    font-weight: var(--font-weight-medium);
+    color: var(--text-secondary);
+    background-color: var(--bg-hover-light); /* Light header for table */
+    text-transform: uppercase;
+    font-size: var(--font-size-xs);
+}
+
+tr:last-child td {
+    border-bottom: none;
+}
+
+tr:hover td { /* Keep hover but use a lighter shade */
+    background-color: #F9FAFB; /* Slightly lighter than primary-brand-light */
+}
+
+/* Status Indicators */
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: var(--spacing-xxs) var(--spacing-xs); /* 4px 8px */
+    border-radius: var(--border-radius-xl); /* Pill shape */
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-medium);
+    line-height: 1rem; /* 16px */
+    text-transform: uppercase;
+}
+
+.status-badge.published {
+    background-color: var(--success-bg);
+    color: var(--success-text);
+}
+
+.status-badge.draft {
+    background-color: #F2F4F7;
+    color: #344054;
+}
+
+/* Gray for draft */
+.status-badge.archived {
+    background-color: var(--warning-bg);
+    color: var(--warning-text);
+}
+
+/* Actions column styling */
+td.actions-cell {
+    display: flex;
+    gap: var(--spacing-xs);
+    align-items: center;
+}
+
+td.actions-cell .btn, td.status-actions-cell .btn {
+    margin-right: var(--spacing-xs);
+}
+
+td.status-actions-cell form {
+    margin: 0 var(--spacing-xxs) 0 0; /* Small margin between status forms */
+}
+
+
+/* Flash Messages */
+.flash-message {
+    padding: var(--spacing-md);
+    margin-bottom: var(--spacing-lg);
+    border-radius: var(--border-radius-md);
+    font-size: var(--font-size-sm);
+    border: 1px solid transparent;
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.flash-message svg {
+    width: 20px;
+    height: 20px;
+}
+
+/* For icons */
+
+.flash-message.success {
+    background-color: var(--success-bg);
+    color: var(--success-text);
+    border-color: var(--success-border);
+}
+
+.flash-message.error {
+    background-color: var(--danger-bg);
+    color: var(--danger-text);
+    border-color: var(--danger-border);
+}
+
+.flash-message.info { /* Generic info message */
+    background-color: var(--primary-brand-light);
+    color: var(--primary-brand);
+    border-color: #B692F6; /* Slightly darker purple border */
+}
+
+/* No Results Message */
+.no-results-message {
+    text-align: center;
+    padding: var(--spacing-xl) var(--spacing-lg);
+    background-color: var(--bg-card);
+    border-radius: var(--border-radius-lg);
+    color: var(--text-secondary);
+    margin-top: var(--spacing-lg);
+    box-shadow: var(--shadow-sm);
+}
+
+.no-results-message p {
+    font-size: var(--font-size-md);
+}
+
+
+/* Pagination */
+.pagination-container {
+    display: flex;
+    justify-content: space-between; /* Space between info and buttons */
+    align-items: center;
+    padding-top: var(--spacing-lg); /* Add some space above pagination */
+}
+
+.pagination-info {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+}
+
+.pagination-nav {
+    display: flex;
+    gap: var(--spacing-xs);
+}
+
+.pagination-nav .btn {
+    background-color: var(--bg-card);
+    color: var(--text-secondary);
+    border-color: var(--border-color-strong);
+}
+
+.pagination-nav .btn:hover {
+    background-color: var(--bg-hover-light);
+}
+
+.pagination-nav .btn.current {
+    background-color: var(--primary-brand-light);
+    color: var(--primary-brand);
+    border-color: var(--primary-brand);
+    font-weight: var(--font-weight-semibold);
+}
+
+.pagination-nav .btn:disabled {
+    background-color: var(--bg-input-disabled);
+    color: var(--text-tertiary);
+    border-color: var(--border-color-light);
+}
+
+/* Share Modal Styles - Keeping existing but can be themed too */
+.share-modal {
+    display: none;
+    position: fixed;
+    z-index: 1050;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(16, 24, 40, 0.6); /* Darker overlay */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.share-modal-content {
+    background-color: var(--bg-card);
+    padding: var(--spacing-lg);
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-md);
+    width: 90%;
+    max-width: 500px;
+    position: relative;
+}
+
+.share-close-btn {
+    color: var(--text-tertiary);
+    position: absolute;
+    top: var(--spacing-md);
+    right: var(--spacing-md);
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.share-close-btn:hover {
+    color: var(--text-primary);
+}
+
+#shareModalTitle {
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
+    margin-bottom: var(--spacing-md);
+}
+
+.share-link-container {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-md);
+}
+
+#shareableLink {
+    flex-grow: 1;
+    height: auto;
+    padding: var(--spacing-xs) var(--spacing-sm);
+    font-size: var(--font-size-sm);
+    color: var(--text-primary);
+    background-color: var(--bg-input-disabled);
+    border: 1px solid var(--border-color-strong);
+    border-radius: var(--border-radius-md);
+}
+
+.btn-copy-link { /* Use primary button style */
+    background-color: var(--primary-brand);
+    color: var(--text-white);
+    border-color: var(--primary-brand);
+}
+
+.btn-copy-link:hover {
+    background-color: var(--primary-brand-hover);
+}
+
+/* Ensure specific action buttons in table take precedence and are small */
+td.actions-cell .btn, td.status-actions-cell .btn {
+    padding: var(--spacing-xxs) var(--spacing-sm); /* 6px 12px for small action buttons */
+    font-size: var(--font-size-xs);
+    height: auto; /* Reset fixed height */
+    line-height: 1.25rem; /* 20px */
+}
+
+/* Copied from forms-list-buffer.html END */
+
+/* JSON Editor Styles (for form-create-buffer.html) */
+.json-panel {
+    /* Already styled by .card from forms-list-buffer styles if we make sure jsonPanel has .card class */
+    /* Adding some specific overrides or additional styles if needed */
+    margin-bottom: var(--spacing-lg); /* Ensures spacing consistent with other cards */
+}
+
+.json-panel h3 {
+    font-size: var(--font-size-xl); /* Consistent heading size */
+    margin-bottom: var(--spacing-md);
+}
+
+.json-panel p {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+    margin-bottom: var(--spacing-md);
+}
+
+.json-editor-container {
+    position: relative;
+    border: 1px solid var(--border-color-strong);
+    border-radius: var(--border-radius-md);
+    overflow: hidden;
+    margin-bottom: var(--spacing-md);
+    background-color: var(--bg-input); /* Ensure background for textarea within */
+}
+
+#jsonLineNumbers {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 45px; /* Slightly wider for 3-digit lines */
+    background-color: var(--bg-hover-light); /* Subtle background */
+    color: var(--text-tertiary);
+    text-align: right;
+    padding: var(--spacing-sm) var(--spacing-xs) var(--spacing-sm) 0;
+    font-family: monospace;
+    font-size: var(--font-size-xs); /* Smaller font for line numbers */
+    line-height: 1.5; /* Should match textarea */
+    overflow: hidden;
+    user-select: none;
+    border-right: 1px solid var(--border-color-light);
+}
+
+#jsonImport {
+    width: 100%;
+    padding: var(--spacing-sm) var(--spacing-sm) var(--spacing-sm) 55px; /* Left padding to account for line numbers */
+    font-family: monospace;
+    font-size: var(--font-size-sm);
+    line-height: 1.5;
+    resize: vertical;
+    min-height: 200px; /* Default height */
+    border: none; /* Border is on the container */
+    outline: none;
+    background-color: transparent; /* Let container background show */
+    color: var(--text-primary);
+}
+
+.json-panel .button-group {
+    margin-top: var(--spacing-md);
+    display: flex;
+    gap: var(--spacing-sm);
+}
+
+#jsonValidationResult {
+    margin-top: var(--spacing-md);
+    padding: var(--spacing-sm);
+    border-radius: var(--border-radius-md);
+    font-size: var(--font-size-sm);
+    max-height: 200px;
+    overflow: auto;
+    line-height: 1.4;
+}
+
+#jsonValidationResult.flash-message.success {
+    /* Styles already defined by .flash-message.success */
+}
+
+#jsonValidationResult.flash-message.error {
+    /* Styles already defined by .flash-message.error */
+}
+
+#jsonValidationResult pre {
+    margin: 0;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+#imagePreviewContainer {
+    border: 1px solid var(--border-color-light);
+    background: var(--bg-input-disabled);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 150px;
+    margin-top: var(--spacing-sm);
+    margin-bottom: var(--spacing-md);
+    border-radius: var(--border-radius-md);
+}
+
+#imagePreviewPlaceholder {
+    color: var(--text-placeholder);
+}
+
+/* Styles for Form Edit Page - Outline Panel */
+.editor-layout-wrapper {
+    display: flex;
+    align-items: flex-start; /* Align items to the top */
+    gap: var(--spacing-xl); /* More gap between panel and content */
+    /* Remove padding, page-container will handle outer padding */
+}
+
+.editor-layout-wrapper > .card {
+    flex-grow: 1; /* Allow the main content card to fill available space */
+    min-width: 0; /* Recommended for flex items that should shrink if needed */
+}
+
+.form-outline-panel {
+    width: 320px;
+    flex-shrink: 0;
+    background-color: var(--bg-card);
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-md);
+    padding: var(--spacing-lg);
+
+    max-height: calc(100vh - var(--spacing-xl) - var(--spacing-xl) - 60px); /* Adjust 60px based on actual header height if possible, for now a guess. 2x spacing-xl for page-container top/bottom padding */
+    overflow-y: auto;
+    position: sticky;
+    top: var(--spacing-lg); /* Stick below the page-container's top padding area */
+}
+
+.form-outline-panel h2 {
+    font-size: var(--font-size-lg); /* Slightly smaller than main H1 */
+    font-weight: var(--font-weight-semibold);
+    color: var(--text-primary);
+    margin-top: 0;
+    margin-bottom: var(--spacing-md);
+    padding-bottom: var(--spacing-md);
+    border-bottom: 1px solid var(--border-color-light);
+}
+
+#formOutlineTree {
+    list-style-type: none;
+    padding-left: 0;
+    margin: 0;
+}
+
+#formOutlineTree ul {
+    list-style-type: none;
+    padding-left: var(--spacing-md); /* Indentation for nested lists */
+    margin-top: var(--spacing-xs);
+}
+
+#formOutlineTree li {
+    padding: var(--spacing-xxs) 0; /* Small vertical padding */
+}
+
+#formOutlineTree .section-node > .section-header {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    padding: var(--spacing-xs) 0;
+    border-radius: var(--border-radius-sm);
+    line-height: 1.4; /* Added for better vertical centering if text wraps slightly */
+}
+
+#formOutlineTree .section-node > .section-header:hover {
+    background-color: var(--bg-hover-light);
+}
+
+#formOutlineTree .toggle-icon {
+    margin-right: var(--spacing-sm);
+    color: var(--primary-brand);
+    font-weight: var(--font-weight-bold); /* Make it bolder */
+    width: 18px;
+    display: inline-block;
+    text-align: center;
+    flex-shrink: 0;
+    transition: transform 0.2s ease-in-out;
+}
+
+#formOutlineTree .outline-section-title {
+    font-weight: var(--font-weight-medium);
+    color: var(--text-primary);
+    transition: color .15s ease-in-out;
+    flex-grow: 1;
+    white-space: nowrap; /* Prevent wrapping */
+    overflow: hidden; /* Hide overflow */
+    text-overflow: ellipsis; /* Add ellipsis for overflow */
+    margin-right: var(--spacing-sm); /* Space before potential scrollbar or edge */
+}
+
+#formOutlineTree .section-node > .section-header:hover .outline-section-title {
+    color: var(--primary-brand);
+}
+
+#formOutlineTree .section-fields-list {
+    display: none; /* Hidden by default, JS toggles */
+    padding-left: calc(var(--spacing-md) + 18px + var(--spacing-sm)); /* Align with title text, accounting for icon width and its margin */
+}
+
+#formOutlineTree .field-node {
+    font-size: var(--font-size-sm);
+    cursor: pointer;
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--border-radius-sm);
+    display: block; /* Make it block for full-width hover */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+#formOutlineTree .field-node:hover {
+    background-color: var(--bg-hover-light);
+}
+
+#formOutlineTree .field-node:hover .outline-field-label {
+    color: var(--primary-brand);
+    /* text-decoration: underline; Removed for cleaner look, hover on whole node is enough */
+}
+
+#formOutlineTree .outline-field-label {
+    color: var(--text-secondary);
+    transition: color .15s ease-in-out;
+}
+
+#formOutlineTree .field-type-indicator {
+    font-size: var(--font-size-xs);
+    color: var(--text-tertiary);
+    margin-left: var(--spacing-xs);
+}
+
+/* Style for the form information block */
+.form-info {
+    background-color: var(--primary-brand-light); /* Light purple background */
+    border: 1px solid var(--primary-brand); /* Purple border */
+    border-radius: var(--border-radius-md);
+    padding: var(--spacing-md);
+    margin-bottom: var(--spacing-lg);
+    font-size: var(--font-size-sm);
+}
+
+.form-info p {
+    margin: var(--spacing-xs) 0;
+    color: var(--text-secondary); /* Darker text for readability */
+}
+
+.form-info strong {
+    color: var(--text-primary); /* Even darker for labels */
+    font-weight: var(--font-weight-semibold);
+}
+
+/* Adjustments for nested item styling within the main form when using the new theme */
+/* This assumes .nested-item, .section, .field, .validation-rule classes are used as before */
+.editor-layout-wrapper .card .nested-item {
+    border: 1px solid var(--border-color-light); /* Lighter border */
+    padding: var(--spacing-md);
+    margin-top: var(--spacing-md);
+    margin-bottom: var(--spacing-md);
+    border-radius: var(--border-radius-md);
+    background-color: var(--bg-card); /* Already white, but ensures consistency */
+    box-shadow: var(--shadow-xs); /* Softer shadow */
+}
+
+.editor-layout-wrapper .card .nested-item h4,
+.editor-layout-wrapper .card .nested-item h5,
+.editor-layout-wrapper .card .nested-item h6 {
+    margin-bottom: var(--spacing-sm);
+    font-weight: var(--font-weight-medium);
+}
+
+.editor-layout-wrapper .card .section {
+    border-left: 3px solid var(--primary-brand);
+}
+
+.editor-layout-wrapper .card .field {
+    margin-left: var(--spacing-md);
+    border-left: 3px solid var(--success-main);
+}
+
+/* Example: Green for fields */
+.editor-layout-wrapper .card .validation-rule {
+    margin-left: var(--spacing-lg);
+    border-left: 3px solid var(--warning-main);
+}
+
+/* Example: Yellow for rules */
+
+.editor-layout-wrapper .card .remove-btn {
+    /* Using btn-danger, already themed. Ensure float/margin is okay */
+    float: right;
+    margin-left: var(--spacing-sm);
+    margin-bottom: var(--spacing-xs);
+}
+
+.editor-layout-wrapper .card .add-btn,
+.editor-layout-wrapper .card .add-field-btn, /* Assuming add-field-btn gets .btn and a color class */
+.editor-layout-wrapper .card .add-validation-rule-btn { /* Assuming add-validation-rule-btn gets .btn and a color class */
+    margin-top: var(--spacing-sm);
+    margin-bottom: var(--spacing-xs);
+    /* Buttons should already be styled by .btn and .btn-primary or .btn-secondary etc. */
+} 

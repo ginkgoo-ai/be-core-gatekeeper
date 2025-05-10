@@ -1,0 +1,1056 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Form</title>
+    <link rel="stylesheet" th:href="@{/css/buffer-ui.css}"/>
+    <style>
+        /* :root variables are removed, will use buffer-ui.css variables */
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* body styling is now largely handled by buffer-ui.css via .page-container */
+        /* .form-dynamic-container might be removed or its styles merged into .card-body */
+
+        .form-dynamic-container { /* This might become redundant or need adjustments */
+            /* max-width: 850px; */ /* Handled by .card within .page-container potentially */
+            /* margin: var(--spacing-lg) auto; */ /* Handled by .card */
+            padding: 0; /* Original padding was var(--spacing-lg), card-body will have padding */
+            /* background-color: var(--bg-card); */ /* Handled by .card */
+            /* border-radius: var(--border-radius-lg); */ /* Handled by .card */
+            /* box-shadow: var(--shadow-md); */ /* Handled by .card */
+        }
+
+        .form-header {
+            text-align: center;
+            margin-bottom: var(--spacing-xl);
+            padding-bottom: var(--spacing-lg);
+            border-bottom: 1px solid var(--border-color-light);
+        }
+
+        .form-title { /* This is the title WITHIN the form, not the page header title */
+            font-size: var(--font-size-2xl);
+            color: var(--text-primary);
+            font-weight: var(--font-weight-semibold);
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .form-description {
+            color: var(--text-secondary);
+            margin-bottom: 0;
+            font-size: var(--font-size-md);
+        }
+
+        .section-container {
+            border: 1px solid var(--border-color-light);
+            padding: var(--spacing-lg);
+            margin-bottom: var(--spacing-xl);
+            border-radius: var(--border-radius-md);
+            background-color: var(--bg-card);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .section-title {
+            font-size: var(--font-size-xl);
+            margin-top: 0;
+            color: var(--primary-brand);
+            border-bottom: 1px solid var(--border-color-light);
+            padding-bottom: var(--spacing-md);
+            margin-bottom: var(--spacing-lg);
+            font-weight: var(--font-weight-medium);
+        }
+
+        .field-container {
+            margin-bottom: var(--spacing-lg);
+            padding-left: var(--spacing-md);
+            border-left: 3px solid var(--primary-brand-light);
+        }
+
+        .field-container:last-child {
+            margin-bottom: 0;
+        }
+
+        .field-label {
+            display: block;
+            margin-bottom: var(--spacing-xs);
+            font-weight: var(--font-weight-medium);
+            color: var(--text-secondary);
+        }
+
+        .field-label .required-asterisk {
+            color: var(--danger-main);
+        }
+
+
+        .field-input input[type="text"],
+        .field-input input[type="number"],
+        .field-input input[type="email"],
+        .field-input input[type="password"],
+        .field-input input[type="date"],
+        .field-input input[type="file"],
+        .field-input select,
+        .field-input textarea {
+            width: 100%;
+            padding: var(--spacing-sm) var(--spacing-md);
+            font-size: var(--font-size-md);
+            color: var(--text-primary);
+            background-color: var(--bg-input);
+            border: 1px solid var(--border-color-strong);
+            border-radius: var(--border-radius-md);
+            transition: border-color .15s ease-in-out, box-shadow .15s ease-in-out;
+            box-shadow: var(--shadow-xs);
+        }
+
+        .field-input input:focus,
+        .field-input select:focus,
+        .field-input textarea:focus {
+            border-color: var(--primary-brand);
+            outline: 0;
+            box-shadow: 0 0 0 3px var(--border-focus-ring), var(--shadow-xs);
+        }
+
+        .field-input textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .field-input input[type="radio"],
+        .field-input input[type="checkbox"] {
+            margin-right: var(--spacing-xs);
+            vertical-align: middle;
+            width: auto;
+        }
+
+        .field-input .radio-option-label,
+        .field-input .checkbox-option-label {
+            margin-right: var(--spacing-md);
+            vertical-align: middle;
+            display: inline-block;
+            font-weight: var(--font-weight-regular);
+            color: var(--text-primary);
+            font-size: var(--font-size-md);
+        }
+
+        .field-input input:read-only,
+        .field-input textarea:read-only,
+        .field-input select:read-only {
+            background-color: var(--bg-input-disabled);
+            cursor: not-allowed;
+        }
+
+        .field-input input:disabled,
+        .field-input select:disabled,
+        .field-input textarea:disabled {
+            background-color: var(--bg-input-disabled);
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        .field-input input.invalid,
+        .field-input textarea.invalid,
+        .field-input select.invalid {
+            border-color: var(--danger-main);
+        }
+
+        .field-input input.invalid:focus,
+        .field-input textarea.invalid:focus,
+        .field-input select.invalid:focus {
+            box-shadow: 0 0 0 3px rgba(var(--danger-main), 0.25);
+        }
+
+
+        .field-info-preview {
+            font-size: var(--font-size-sm);
+            color: var(--text-tertiary);
+            margin-top: var(--spacing-sm);
+            line-height: 1.4;
+            background-color: var(--bg-hover-light);
+            padding: var(--spacing-sm);
+            border-radius: var(--border-radius-md);
+        }
+
+        .field-info-preview strong {
+            color: var(--text-secondary);
+        }
+
+        .field-info-preview code {
+            background-color: var(--border-color-light);
+            padding: 2px 4px;
+            border-radius: var(--border-radius-sm);
+            font-size: 0.9em;
+            color: var(--danger-text);
+        }
+
+        .validation-rules-preview {
+            margin-top: var(--spacing-md);
+            padding: var(--spacing-sm);
+            border-left: 3px solid var(--warning-main);
+            font-size: var(--font-size-sm);
+            background-color: var(--warning-bg);
+            border-radius: 0 var(--border-radius-md) var(--border-radius-md) 0;
+            color: var(--warning-text);
+        }
+
+        .validation-rules-preview strong {
+            color: inherit;
+            font-weight: var(--font-weight-semibold);
+        }
+
+        .validation-rules-preview ul {
+            list-style-type: none;
+            padding-left: 0;
+            margin-bottom: 0;
+        }
+
+        .validation-rules-preview .rule-item {
+            margin-bottom: var(--spacing-xxs);
+        }
+
+        .validation-rules-preview .rule-item code {
+            background-color: rgba(247, 144, 9, 0.2);
+            padding: 1px 3px;
+            border-radius: 2px;
+        }
+
+        .validation-rules-preview .rule-item em {
+            color: var(--danger-text);
+            font-style: normal;
+            font-weight: var(--font-weight-medium);
+        }
+
+        /* .back-link is removed, will be part of new header */
+
+        .action-button-container {
+            margin-top: var(--spacing-xl);
+            text-align: center;
+        }
+
+        /* Button styling will primarily come from .btn, .btn-primary etc. in buffer-ui.css */
+        /* Specific classes like .submit-btn will be applied by JS along with .btn */
+
+
+        /* Modal Styles */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(16, 24, 40, 0.6);
+            z-index: 1050;
+            padding: var(--spacing-lg);
+            box-sizing: border-box;
+            overflow-y: auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background-color: var(--bg-card);
+            margin: 0 auto;
+            padding: var(--spacing-xl);
+            border-radius: var(--border-radius-lg);
+            max-width: 800px;
+            box-shadow: var(--shadow-md);
+            position: relative;
+            width: 90%;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: var(--spacing-md);
+            right: var(--spacing-md);
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--text-tertiary);
+            cursor: pointer;
+            background: none;
+            border: none;
+            padding: var(--spacing-xs);
+            line-height: 1;
+        }
+
+        .close-btn:hover {
+            color: var(--text-primary);
+        }
+
+        .json-display {
+            background-color: var(--bg-input-disabled);
+            border: 1px solid var(--border-color-strong);
+            border-radius: var(--border-radius-md);
+            padding: var(--spacing-md);
+            overflow-x: auto;
+            font-family: monospace;
+            white-space: pre;
+            margin-top: var(--spacing-md);
+            font-size: var(--font-size-sm);
+            color: var(--text-primary);
+        }
+
+        #loadingMessageGlobal, #errorMessagesGlobal {
+            text-align: center;
+            padding: var(--spacing-md);
+            margin-bottom: var(--spacing-md);
+            border-radius: var(--border-radius-md);
+        }
+
+        #loadingMessageGlobal {
+            background-color: var(--bg-hover-light);
+            color: var(--text-secondary);
+        }
+
+        #errorMessagesGlobal {
+            background-color: var(--danger-bg);
+            color: var(--danger-text);
+            border: 1px solid var(--danger-border);
+        }
+
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            border: 0;
+        }
+    </style>
+</head>
+<body>
+<div class="page-container">
+    <header class="page-header" id="dynamicPageHeader" style="display:none;">
+        <!-- Initially hidden, JS will show if needed -->
+        <div class="logo-title">
+            <img th:src="@{https://uploads.linear.app/fee8b358-afe7-4f9d-8ec6-bbcc84fb2a90/aa77c589-9a7f-4c32-9403-547ffb4a2616/256x256/65e10f8a-3bf4-4aa9-86ad-4b4713e1a8db}"
+                 alt="Logo" class="logo"/>
+            <h1 id="pageHeaderTitle">Ginkgoo AI Gateway Keeper</h1> <!-- Title can be dynamic if needed -->
+        </div>
+        <a th:href="@{/admin/forms}" class="btn btn-secondary" id="headerBackToListButton" style="display:none;">Back to
+            List</a>
+    </header>
+
+    <div class="editor-layout-wrapper"> <!-- New wrapper for two-column layout -->
+        <div id="formOutlinePanel" class="form-outline-panel" style="display:none;">
+            <!-- Initially hidden, JS will show if mode requires it -->
+            <h2>Form Outline</h2>
+            <ul id="formOutlineTree">
+                <!-- Outline will be populated by JavaScript -->
+            </ul>
+        </div>
+
+        <div class="card" id="formDisplayCard"> <!-- Existing card, now part of the flex layout -->
+            <div class="card-body">
+                <div class="form-dynamic-container"> <!-- This container might be mostly for semantic grouping now -->
+                    <!-- The old #backLink is removed, its functionality moved to #headerBackToListButton -->
+                    <div class="form-header">
+                        <h1 id="formTitle" class="form-title">Form</h1> <!-- This is the dynamic form's own title -->
+                        <p id="formDescription" class="form-description">Loading form description...</p>
+                    </div>
+
+                    <div id="loadingMessageGlobal">Loading questionnaire...</div>
+                    <div id="errorMessagesGlobal" style="display:none;"></div>
+
+                    <form id="dynamicRenderedForm">
+                        <!-- Dynamic form fields will be inserted here by JavaScript -->
+                    </form>
+
+                    <div id="actionButtonContainer" class="action-button-container">
+                        <!-- Button will be inserted here by JavaScript based on mode -->
+                        <!-- The previewJsonButton and its logic will be removed from JS, so this container might only host the submit button -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JSON Preview Modal is REMOVED from here -->
+
+<script th:inline="javascript">
+  /*<![CDATA[*/
+
+  // Data passed from Spring MVC Model via Thymeleaf
+  let formDefinitionData = /*[[${formDefinition}]]*/ null;
+  let currentFormId = /*[[${formId}]]*/ null; // From model attribute "formId"
+  let currentMode = /*[[${viewMode}]]*/ null;   // From model attribute "viewMode"
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const modeFromQuery = urlParams.get('mode');
+
+    // Ensure currentMode has a default
+    if (!currentMode) { // If viewMode from Thymeleaf was null or empty
+      currentMode = 'fill'; // Default to 'fill'
+    }
+
+    if (modeFromQuery && (modeFromQuery.toLowerCase() === 'preview' || modeFromQuery.toLowerCase() === 'fill')) {
+      currentMode = modeFromQuery.toLowerCase(); // URL query param overrides
+    }
+
+    if (formDefinitionData && !currentFormId) {
+      currentFormId = formDefinitionData.id;
+    }
+
+    if (!currentFormId && !formDefinitionData) {
+      const formIdFromQuery = urlParams.get('formId');
+      if (formIdFromQuery) {
+        currentFormId = formIdFromQuery;
+        console.log("Form ID taken from 'formId' query parameter:", currentFormId);
+      }
+    }
+
+    const pageTitlePrefix = currentMode === 'preview' ? 'Preview: ' : 'Fill: ';
+    const formDisplayName = formDefinitionData ? formDefinitionData.name : (currentFormId || 'Form');
+    document.title = pageTitlePrefix + formDisplayName;
+    console.log("Initial currentMode:", currentMode, "currentFormId:", currentFormId);
+
+
+    // ---- PREVIOUSLY COMMENTED OUT BLOCK - NOW RE-ENABLED ----
+    const formHeader = document.getElementById('dynamicPageHeader');
+    const backButton = document.getElementById('headerBackToListButton');
+    const formOutline = document.getElementById('formOutlinePanel');
+
+    if (currentMode === 'preview' || currentMode === 'fill') {
+      if (formHeader) formHeader.style.display = 'flex';
+      if (backButton && currentMode === 'preview') {
+        backButton.style.display = 'inline-block';
+      } else if (backButton) {
+        backButton.style.display = 'none';
+      }
+      if (formOutline) formOutline.style.display = 'block';
+
+      if (formDefinitionData) { // Data from server
+        showGlobalLoading();
+        try {
+          renderQuestionnaire(formDefinitionData, currentMode);
+          buildFormOutline(formDefinitionData, 'formOutlineTree', currentMode === 'fill');
+        } catch (e) {
+          console.error("Error during initial render from server data:", e);
+          showGlobalError("Error rendering form: " + e.message);
+        } finally {
+          hideGlobalLoading();
+        }
+      } else if (currentFormId) { // Data needs to be fetched
+        fetchFormDefinitionAndRender(currentFormId, currentMode);
+      } else { // No server data, no formId from query
+        showGlobalError('Error: Form ID is missing or could not be determined.');
+        hideGlobalLoading();
+        const formCard = document.getElementById('formDisplayCard');
+        if (formCard) formCard.style.display = 'none';
+        if (formOutline) formOutline.style.display = 'none';
+      }
+    } else { // Not preview or fill mode
+      hideGlobalLoading();
+      if (formHeader) formHeader.style.display = 'none';
+      if (formOutline) formOutline.style.display = 'none';
+      console.log("Mode is not 'preview' or 'fill', form rendering and outline skipped. Current mode:", currentMode);
+      showGlobalError('No valid mode (preview/fill) specified. Got: ' + currentMode); // Added currentMode to error
+      const formCard = document.getElementById('formDisplayCard');
+      if (formCard) formCard.style.display = 'none';
+    }
+    // ---- END OF RE-ENABLED BLOCK ----
+    console.log("Finished DOMContentLoaded with full logic. Mode:", currentMode, "Form ID:", currentFormId);
+  });
+
+  function showGlobalError(message) {
+    const errorDiv = document.getElementById('errorMessagesGlobal');
+    errorDiv.textContent = message;
+    errorDiv.style.display = 'block';
+  }
+
+  function hideGlobalError() {
+    document.getElementById('errorMessagesGlobal').style.display = 'none';
+  }
+
+  function showGlobalLoading() {
+    document.getElementById('loadingMessageGlobal').style.display = 'block';
+  }
+
+  function hideGlobalLoading() {
+    document.getElementById('loadingMessageGlobal').style.display = 'none';
+  }
+
+
+  function fetchFormDefinitionAndRender(formId, mode) {
+    showGlobalLoading();
+    hideGlobalError();
+    const apiUrl = `/api/gatekeeper/v1/render/forms/${formId}`;
+
+    fetch(apiUrl)
+        .then(response => {
+          if (!response.ok) {
+            return response.text().then(text => {
+              throw new Error(`Failed to fetch form: ${response.status} ${response.statusText}. Server says: ${text}`);
+            });
+          }
+          return response.json();
+        })
+        .then(data => {
+          formDefinitionData = data;
+          renderQuestionnaire(data, mode);
+          buildFormOutline(data, 'formOutlineTree', mode === 'fill');
+          hideGlobalLoading();
+        })
+        .catch(error => {
+          console.error('Error fetching questionnaire definition:', error);
+          showGlobalError(error.message || 'Error fetching form definition. Please try again.');
+          hideGlobalLoading();
+          const formCard = document.getElementById('formDisplayCard'); // Target the card
+          if (formCard) formCard.style.display = 'none';
+        });
+  }
+
+  function renderQuestionnaire(formDef, mode) {
+    const formContainer = document.getElementById('dynamicRenderedForm');
+    formContainer.innerHTML = '';
+
+    document.getElementById('formTitle').textContent = (mode === 'preview' ? 'Preview: ' : '') + (formDef.name || 'Untitled Form');
+    // document.title is already set in DOMContentLoaded
+
+    const formDescriptionP = document.getElementById('formDescription');
+    if (formDef.description) {
+      formDescriptionP.textContent = formDef.description;
+      formDescriptionP.style.fontStyle = 'normal';
+    } else {
+      formDescriptionP.textContent = mode === 'preview' ? 'No description provided.' : 'Please fill out the form below.';
+      formDescriptionP.style.fontStyle = 'italic';
+    }
+
+    if (!formDef.sections || formDef.sections.length === 0) {
+      const noSectionsMsg = document.createElement('p');
+      noSectionsMsg.textContent = 'This form definition has no sections or fields defined.';
+      noSectionsMsg.style.textAlign = 'center';
+      noSectionsMsg.style.color = '#888';
+      noSectionsMsg.style.padding = '20px';
+      noSectionsMsg.style.border = '1px dashed #ccc';
+      formContainer.appendChild(noSectionsMsg);
+      // Still show action buttons even if no fields
+    }
+
+    formDef.sections.forEach((section, sectionIndex) => {
+      const sectionDiv = document.createElement('div');
+      sectionDiv.className = 'section-container';
+      sectionDiv.id = `rendered-section-${section.id || 'idx-' + sectionIndex}`;
+
+      const sectionTitleEl = document.createElement('h2');
+      sectionTitleEl.className = 'section-title';
+      sectionTitleEl.textContent = section.title || 'Untitled Section';
+      sectionDiv.appendChild(sectionTitleEl);
+
+      if (mode === 'preview' && section.condition) {
+        const sectionConditionInfo = document.createElement('div');
+        sectionConditionInfo.className = 'field-info-preview';
+        sectionConditionInfo.style.marginBottom = '15px';
+        sectionConditionInfo.innerHTML = `<strong>Display Condition:</strong> <code>${escapeHtml(section.condition)}</code>`;
+        sectionDiv.appendChild(sectionConditionInfo);
+      }
+
+      section.fields.forEach(field => {
+        // TODO: Implement client-side condition evaluation for field visibility if field.condition exists
+
+        const fieldContainerDiv = document.createElement('div');
+        fieldContainerDiv.className = 'field-container';
+        fieldContainerDiv.dataset.fieldName = field.name;
+        const fieldKey = field.id || field.name;
+        fieldContainerDiv.id = `field-container-${fieldKey.replace(/\\W/g, '_')}`;
+
+        const label = document.createElement('label');
+        label.className = 'field-label';
+        label.setAttribute('for', fieldKey);
+        label.textContent = field.label || 'Untitled Field';
+
+        const hasRequiredRule = field.validations && field.validations.some(v => v.type === 'REQUIRED');
+        if (hasRequiredRule && mode === 'fill') { // Show asterisk only in fill mode
+          const requiredAsterisk = document.createElement('span');
+          requiredAsterisk.className = 'required-asterisk';
+          requiredAsterisk.textContent = ' *';
+          label.appendChild(requiredAsterisk);
+        }
+        fieldContainerDiv.appendChild(label);
+
+        const fieldInputDiv = document.createElement('div');
+        fieldInputDiv.className = 'field-input';
+
+        let inputElement;
+        const fieldTypeUpper = field.fieldType ? field.fieldType.toUpperCase() : 'TEXT';
+
+        switch (fieldTypeUpper) {
+          case 'TEXT':
+          case 'NUMBER':
+          case 'EMAIL':
+          case 'PASSWORD':
+          case 'DATE':
+            inputElement = document.createElement('input');
+            inputElement.type = fieldTypeUpper.toLowerCase();
+            break;
+          case 'FILE_UPLOAD':
+            inputElement = document.createElement('input');
+            inputElement.type = 'file';
+            if (field.uiProperties && field.uiProperties.accept) {
+              inputElement.accept = field.uiProperties.accept;
+            }
+            if (field.uiProperties && field.uiProperties.multiple) {
+              inputElement.multiple = true;
+            }
+            break;
+          case 'TEXTAREA':
+            inputElement = document.createElement('textarea');
+            if (field.uiProperties && field.uiProperties.rows) {
+              inputElement.rows = field.uiProperties.rows;
+            }
+            break;
+          case 'BOOLEAN':
+            inputElement = document.createElement('input');
+            inputElement.type = 'checkbox';
+            inputElement.value = 'true'; // Actual value when checked
+            if (String(field.defaultValue).toLowerCase() === 'true') {
+              inputElement.checked = true;
+            }
+            const booleanContainer = document.createElement('div'); // Optional: for layout
+            booleanContainer.appendChild(inputElement);
+            fieldInputDiv.appendChild(booleanContainer);
+            break;
+          case 'SELECT':
+            inputElement = document.createElement('select');
+            const placeholderOption = document.createElement('option');
+            placeholderOption.value = "";
+            placeholderOption.textContent = field.placeholder || '-- Select --';
+            if (hasRequiredRule && mode === 'fill') placeholderOption.disabled = true; // Can't select placeholder if required
+            else placeholderOption.selected = true; // Default selection if not required
+            inputElement.appendChild(placeholderOption);
+
+            if (field.staticOptions && Array.isArray(field.staticOptions)) {
+              field.staticOptions.forEach(opt => {
+                const optionEl = document.createElement('option');
+                optionEl.value = opt.value;
+                optionEl.textContent = opt.label;
+                if (String(opt.value) === String(field.defaultValue)) optionEl.selected = true;
+                inputElement.appendChild(optionEl);
+              });
+            } else if (field.optionsSourceType === 'DYNAMIC_API') {
+              if (mode === 'preview') {
+                const disabledOpt = document.createElement('option');
+                disabledOpt.disabled = true;
+                disabledOpt.textContent = '(Dynamic options not loaded in preview)';
+                inputElement.appendChild(disabledOpt);
+              } else {
+                // TODO: Implement DYNAMIC_API fetching for 'fill' mode
+                console.warn(`Field "${field.name}" uses DYNAMIC_API options - not yet implemented for fill mode.`);
+              }
+            }
+            break;
+          case 'RADIO':
+            inputElement = document.createElement('div');
+            inputElement.className = 'radio-group';
+            if (field.staticOptions && Array.isArray(field.staticOptions)) {
+              field.staticOptions.forEach((opt, index) => {
+                const radioId = `${fieldKey}-${index}`;
+                const radioOptionLabel = document.createElement('label');
+                radioOptionLabel.className = 'radio-option-label';
+                radioOptionLabel.setAttribute('for', radioId);
+
+                const radio = document.createElement('input');
+                radio.type = 'radio';
+                radio.name = field.name;
+                radio.value = opt.value;
+                radio.id = radioId;
+                if (String(opt.value) === String(field.defaultValue)) radio.checked = true;
+
+                radioOptionLabel.appendChild(radio);
+                radioOptionLabel.appendChild(document.createTextNode(' ' + opt.label)); // Add space
+                inputElement.appendChild(radioOptionLabel);
+              });
+            } else if (field.optionsSourceType === 'DYNAMIC_API') {
+              if (mode === 'preview') {
+                const disabledSpan = document.createElement('span');
+                disabledSpan.textContent = '(Dynamic options not loaded in preview)';
+                inputElement.appendChild(disabledSpan);
+              } else {
+                console.warn(`Field "${field.name}" uses DYNAMIC_API options - not yet implemented for fill mode.`);
+              }
+            }
+            fieldInputDiv.appendChild(inputElement);
+            break;
+          case 'CHECKBOX': // For a group of checkboxes
+            inputElement = document.createElement('div');
+            inputElement.className = 'checkbox-group';
+            if (field.staticOptions && Array.isArray(field.staticOptions)) {
+              field.staticOptions.forEach((opt, index) => {
+                const checkId = `${fieldKey}-${index}`;
+                const checkOptionLabel = document.createElement('label');
+                checkOptionLabel.className = 'checkbox-option-label';
+                checkOptionLabel.setAttribute('for', checkId);
+
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.name = field.name;
+                checkbox.value = opt.value;
+                checkbox.id = checkId;
+                if (Array.isArray(field.defaultValue) && field.defaultValue.includes(String(opt.value))) {
+                  checkbox.checked = true;
+                }
+
+                checkOptionLabel.appendChild(checkbox);
+                checkOptionLabel.appendChild(document.createTextNode(' ' + opt.label));
+                inputElement.appendChild(checkOptionLabel);
+              });
+            } else if (field.optionsSourceType === 'DYNAMIC_API') {
+              if (mode === 'preview') {
+                const disabledSpan = document.createElement('span');
+                disabledSpan.textContent = '(Dynamic options not loaded in preview)';
+                inputElement.appendChild(disabledSpan);
+              } else {
+                console.warn(`Field "${field.name}" uses DYNAMIC_API options - not yet implemented for fill mode.`);
+              }
+            }
+            fieldInputDiv.appendChild(inputElement);
+            break;
+          default:
+            inputElement = document.createElement('span');
+            inputElement.textContent = `Unsupported field type: ${field.fieldType}`;
+        }
+
+        if (inputElement && inputElement.tagName !== 'DIV') { // Apply common attributes to non-group elements
+          inputElement.id = fieldKey;
+          inputElement.name = field.name;
+          if (field.placeholder && !['FILE_UPLOAD', 'BOOLEAN', 'RADIO', 'CHECKBOX'].includes(fieldTypeUpper)) {
+            inputElement.placeholder = field.placeholder;
+          }
+          // Default value for TEXT, TEXTAREA, NUMBER, EMAIL, PASSWORD, DATE, SELECT (handled in SELECT case for selected state)
+          if (field.defaultValue !== undefined && field.defaultValue !== null &&
+              !['BOOLEAN', 'RADIO', 'CHECKBOX', 'SELECT'].includes(fieldTypeUpper)) {
+            if (inputElement.tagName === 'TEXTAREA') inputElement.textContent = field.defaultValue;
+            else inputElement.value = field.defaultValue;
+          }
+
+          if (mode === 'fill' && hasRequiredRule) inputElement.required = true;
+
+          if (mode === 'preview' || (field.uiProperties && field.uiProperties.disabled)) {
+            inputElement.disabled = true;
+          }
+          if (field.uiProperties && field.uiProperties.readOnly && mode === 'fill') {
+            inputElement.readOnly = true;
+          }
+
+          const rules = field.validations || [];
+          const uiProps = field.uiProperties || {};
+          rules.forEach(rule => {
+            if (mode === 'fill' || mode === 'preview') { // Apply HTML5 validation for both for consistency if displayed
+              if (rule.type === 'MIN_LENGTH' && rule.value) inputElement.minLength = parseInt(rule.value);
+              if (rule.type === 'MAX_LENGTH' && rule.value) inputElement.maxLength = parseInt(rule.value);
+              if (rule.type === 'PATTERN' && rule.value) inputElement.pattern = rule.value;
+              if (fieldTypeUpper === 'NUMBER') {
+                if (rule.type === 'MIN_VALUE' && rule.value) inputElement.min = rule.value;
+                if (rule.type === 'MAX_VALUE' && rule.value) inputElement.max = rule.value;
+              }
+            }
+          });
+          if (uiProps.minLength && !inputElement.minLength) inputElement.minLength = uiProps.minLength;
+          if (uiProps.maxLength && !inputElement.maxLength) inputElement.maxLength = uiProps.maxLength;
+          if (uiProps.pattern && !inputElement.pattern) inputElement.pattern = uiProps.pattern;
+          if (fieldTypeUpper === 'NUMBER') {
+            if (uiProps.min && !inputElement.min) inputElement.min = uiProps.min;
+            if (uiProps.max && !inputElement.max) inputElement.max = uiProps.max;
+            inputElement.step = uiProps.step || 'any';
+          }
+          if (fieldTypeUpper === 'DATE') {
+            if (uiProps.minDate) inputElement.min = uiProps.minDate;
+            if (uiProps.maxDate) inputElement.max = uiProps.maxDate;
+          }
+          fieldInputDiv.appendChild(inputElement);
+        }
+        fieldContainerDiv.appendChild(fieldInputDiv);
+
+        if (mode === 'preview') {
+          const infoDiv = document.createElement('div');
+          infoDiv.className = 'field-info-preview';
+          let infoHtml = '';
+          if (field.defaultValue !== undefined && field.defaultValue !== null && String(field.defaultValue).trim() !== '') {
+            infoHtml += `<span><strong>Default:</strong> <code>${escapeHtml(String(field.defaultValue))}</code> | </span>`;
+          }
+          if (field.condition) {
+            infoHtml += `<span><strong>Condition:</strong> <code>${escapeHtml(field.condition)}</code> | </span>`;
+          }
+          if (field.dependencies && field.dependencies.length > 0) {
+            infoHtml += `<span><strong>Deps:</strong> <code>${escapeHtml(JSON.stringify(field.dependencies))}</code> | </span>`;
+          }
+          if (field.optionsSourceType === 'DYNAMIC_API' && field.apiEndpoint) {
+            infoHtml += `<span><strong>Options API:</strong> <code>${escapeHtml(field.apiEndpoint)}</code></span>`;
+          }
+          if (infoHtml.endsWith(' | </span>')) {
+            infoHtml = infoHtml.slice(0, -9) + '</span>';
+          }
+          infoDiv.innerHTML = infoHtml || '<!-- No additional field info. -->';
+          if (infoHtml) fieldContainerDiv.appendChild(infoDiv);
+
+          if (field.validations && field.validations.length > 0) {
+            const rulesDiv = document.createElement('div');
+            rulesDiv.className = 'validation-rules-preview';
+            let rulesHtml = '<strong>Validation Rules:</strong><ul>';
+            field.validations.forEach(rule => {
+              rulesHtml += `<li class="rule-item"><strong>${escapeHtml(rule.type)}</strong>`;
+              if (rule.value !== undefined && String(rule.value).trim() !== '') {
+                rulesHtml += ` (<code>${escapeHtml(String(rule.value))}</code>)`;
+              }
+              rulesHtml += `: <em>${escapeHtml(rule.errorMessage)}</em>`;
+              if (rule.customFunction) {
+                rulesHtml += ` [Custom: <code>${escapeHtml(rule.customFunction)}</code>]`;
+              }
+              rulesHtml += '</li>';
+            });
+            rulesHtml += '</ul>';
+            rulesDiv.innerHTML = rulesHtml;
+            fieldContainerDiv.appendChild(rulesDiv);
+          }
+        }
+        sectionDiv.appendChild(fieldContainerDiv);
+      });
+      formContainer.appendChild(sectionDiv);
+    });
+
+    const actionButtonContainer = document.getElementById('actionButtonContainer');
+    actionButtonContainer.innerHTML = '';
+    const actionButton = document.createElement('button');
+    // actionButton.type = 'button'; // type defaults to submit if inside a form, but this is outside for now.
+    // Let's make it 'button' explicitly to prevent accidental form submissions if it were inside.
+    actionButton.type = 'button';
+
+    if (mode === 'preview') {
+      // Button for preview was removed. If you want a different action for preview, add it here.
+      // For now, no button in preview mode since JSON preview is gone.
+      actionButtonContainer.innerHTML = ''; // Clear if no button for preview
+    } else { // Fill mode
+      actionButton.className = 'btn btn-success submit-btn'; // Use theme classes
+      actionButton.id = 'submitFormButton';
+      actionButton.textContent = 'Submit Questionnaire';
+      actionButton.onclick = submitFilledForm;
+    }
+    actionButtonContainer.appendChild(actionButton);
+  }
+
+  function escapeHtml(unsafe) {
+    if (unsafe === null || unsafe === undefined) return '';
+    return String(unsafe)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+  }
+
+  // --- Fill Mode Functions ---
+  async function submitFilledForm() {
+    const form = document.getElementById('dynamicRenderedForm');
+    hideGlobalError();
+
+    if (!form.checkValidity()) {
+      let firstInvalidField = null;
+      form.querySelectorAll(':invalid').forEach((field) => {
+        if (!firstInvalidField) firstInvalidField = field;
+        field.classList.add('invalid'); // Add class for styling
+      });
+      showGlobalError('Please fill in all required fields correctly.');
+      if (firstInvalidField) firstInvalidField.focus();
+      return;
+    }
+    // Clear invalid classes if form is now valid
+    form.querySelectorAll('.invalid').forEach(el => el.classList.remove('invalid'));
+
+
+    const formData = new FormData(form);
+    const data = {};
+    formData.forEach((value, key) => {
+      if (data.hasOwnProperty(key)) {
+        if (!Array.isArray(data[key])) {
+          data[key] = [data[key]];
+        }
+        data[key].push(value);
+      } else {
+        // For boolean checkboxes not checked, FormData doesn't include them.
+        // We need to check original formDef for boolean type and set to false if not present.
+        const fieldDef = findFieldDefinition(key, formDefinitionData);
+        if (fieldDef && fieldDef.fieldType && fieldDef.fieldType.toUpperCase() === 'BOOLEAN' && value === 'true') {
+          data[key] = true;
+        } else {
+          data[key] = value;
+        }
+      }
+    });
+
+    // Ensure all boolean fields are present, defaulting to false if not checked
+    formDefinitionData.sections.forEach(s => s.fields.forEach(f => {
+      if (f.fieldType && f.fieldType.toUpperCase() === 'BOOLEAN' && !data.hasOwnProperty(f.name)) {
+        data[f.name] = false;
+      }
+    }));
+
+
+    const submissionPayload = {
+      formDefinitionId: currentFormId,
+      responseData: data,
+      // userId: "someUserId" // TODO: Implement userId retrieval if needed by the submission endpoint
+    };
+
+    let effectiveSubmissionUrl = '/api/gatekeeper/v1/submit/forms/{formId}'; // Default/fallback submission URL
+
+    if (formDefinitionData && formDefinitionData.submissionLogic) {
+      let logicNode = formDefinitionData.submissionLogic;
+      // If submissionLogic is a string, try to parse it as JSON
+      if (typeof logicNode === 'string') {
+        try {
+          logicNode = JSON.parse(logicNode);
+        } catch (e) {
+          console.error("Failed to parse submissionLogic string as JSON:", e);
+          // If it's a simple string that looks like a URL path, use it directly
+          if (logicNode.startsWith("/")) {
+            console.warn(`Using submissionLogic string "${logicNode}" directly as URL.`);
+            effectiveSubmissionUrl = logicNode;
+            logicNode = null; // Prevent further processing as object
+          } else {
+            logicNode = null; // Not a valid JSON string or direct path
+          }
+        }
+      }
+      // If logicNode is now an object and has targetService
+      if (logicNode && typeof logicNode === 'object' && logicNode.targetService) {
+        effectiveSubmissionUrl = logicNode.targetService;
+        console.log("Using targetService from submissionLogic:", effectiveSubmissionUrl);
+      } else if (typeof logicNode === 'string' && logicNode.startsWith('/')) {
+        // This case is for when submissionLogic was a valid path string and not JSON
+        // effectiveSubmissionUrl is already set above
+      } else if (formDefinitionData.submissionLogic) { // If it was some other non-empty value not parsed
+        console.warn("submissionLogic found but no targetService or valid path string extracted. Using fallback URL.", formDefinitionData.submissionLogic);
+      }
+    }
+
+    // Replace {formId} placeholder in the URL if it exists
+    if (currentFormId && effectiveSubmissionUrl.includes("{formId}")) {
+      effectiveSubmissionUrl = effectiveSubmissionUrl.replace("{formId}", currentFormId);
+    }
+
+    console.log('Submitting payload to:', effectiveSubmissionUrl, 'Payload:', submissionPayload);
+    showGlobalLoading();
+
+    try {
+      const response = await fetch(effectiveSubmissionUrl, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(submissionPayload),
+      });
+      hideGlobalLoading();
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({message: 'Submission failed. Status: ' + response.status}));
+        throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+      }
+      const result = await response.json();
+      console.log('Submission successful:', result);
+      alert('Questionnaire submitted successfully!');
+      // form.reset(); // Optionally reset
+      // Consider redirecting or showing a success message within the page
+    } catch (error) {
+      hideGlobalLoading();
+      console.error('Submission error:', error);
+      showGlobalError(`Submission Error: ${error.message}. Please try again.`);
+    }
+  }
+
+  function findFieldDefinition(fieldName, definition) {
+    if (!definition || !definition.sections) return null;
+    for (const section of definition.sections) {
+      const field = section.fields.find(f => f.name === fieldName);
+      if (field) return field;
+    }
+    return null;
+  }
+
+  // --- Preview Mode Functions (validateAndShowJSONPreview, showJsonModal, closeModal, copyJsonToClipboard) are REMOVED --- 
+
+  window.onclick = function (event) {
+    // Removed: if (event.target === document.getElementById('jsonModal')) {
+    // Removed:     closeModal();
+    // Removed: }
+    // This window.onclick might not be needed anymore if its only purpose was closing the modal.
+    // For now, I'll leave it empty but it can be removed if truly no other global click handlers are needed.
+  };
+
+  // New functions for Form Outline
+  function buildFormOutline(formDef, treeId, isFillMode) {
+    const tree = document.getElementById(treeId);
+    if (!tree || !formDef || !formDef.sections) {
+      console.error('Form outline tree element not found or form definition/sections missing.', formDef);
+      if (tree) tree.innerHTML = '<li>Error loading form outline.</li>';
+      return;
+    }
+    tree.innerHTML = '';
+
+    formDef.sections.forEach((section, sectionIndex) => {
+      const sectionRenderedDomId = `rendered-section-${section.id || 'idx-' + sectionIndex}`;
+      const sectionNode = document.createElement('li');
+      sectionNode.classList.add('section-node');
+
+      const sectionHeader = document.createElement('div');
+      sectionHeader.classList.add('section-header');
+      sectionHeader.innerHTML = `<span class="section-title">${section.title || `Section ${sectionIndex + 1}`}</span>`;
+      sectionHeader.onclick = () => scrollToElement(sectionRenderedDomId, 'center');
+      sectionNode.appendChild(sectionHeader);
+
+      if (section.fields && section.fields.length > 0) {
+        const fieldsList = document.createElement('ul');
+        fieldsList.classList.add('fields-list');
+        section.fields.forEach((field, fieldIndex) => {
+          const fieldKey = field.id || field.name; // Use field.id if available, else field.name
+          const fieldElementId = `field-container-${fieldKey.replace(/\\W/g, '_')}`; // ID of the field's container in the form
+
+          const fieldNode = document.createElement('li');
+          fieldNode.classList.add('field-node');
+
+          // In fillMode, make the field label clickable to scroll to the field
+          // In previewMode, just display text, or make it scroll if fieldElementId is reliable
+          let fieldDisplay = `<span class="field-label">${field.label || field.name}</span>`;
+          if (field.fieldType) {
+            fieldDisplay += ` <span class="field-type-indicator">(${field.fieldType})</span>`;
+          }
+
+          const fieldLink = document.createElement('a');
+          fieldLink.href = `#${fieldElementId}`; // Link to the field container
+          fieldLink.innerHTML = fieldDisplay;
+          fieldLink.onclick = (e) => {
+            e.preventDefault();
+            scrollToElement(fieldElementId, 'start'); // Scroll to the field container
+          };
+          fieldNode.appendChild(fieldLink);
+          fieldsList.appendChild(fieldNode);
+        });
+        sectionNode.appendChild(fieldsList);
+      }
+      tree.appendChild(sectionNode);
+    });
+  }
+
+  function scrollToElement(elementId, blockPosition = 'start') {
+    const element = document.getElementById(elementId);
+    if (element) {
+      element.scrollIntoView({behavior: 'smooth', block: blockPosition});
+
+      // Optional: Add a temporary highlight effect
+      element.classList.add('highlight-scroll');
+      setTimeout(() => {
+        element.classList.remove('highlight-scroll');
+      }, 1500); // Remove highlight after 1.5 seconds
+    } else {
+      console.warn('Element to scroll to not found:', elementId);
+    }
+  }
+
+  /*]]>*/
+</script>
+</body>
+</html> 

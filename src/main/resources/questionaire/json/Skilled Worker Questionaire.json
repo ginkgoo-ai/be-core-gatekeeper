@@ -1,0 +1,317 @@
+{
+    "name": "Skilled Worker Questionnaire",
+    "formType": "QUESTIONNAIRE",
+    "version": "1.0",
+    "description": "Form for skilled worker visa applicants, collecting personal, relationship, and address information.",
+    "targetAudience": "Skilled worker visa applicants",
+    "initialLogic": {},
+    "submissionLogic": {},
+    "sections": [
+        {
+            "title": "Personal Information",
+            "order": 1,
+            "fields": [
+                {
+                    "label": "Title",
+                    "type": "TEXT",
+                    "name": "title",
+                    "required": false
+                },
+                {
+                    "label": "Given name(s)",
+                    "type": "TEXT",
+                    "name": "given_names",
+                    "required": true
+                },
+                {
+                    "label": "Family name",
+                    "type": "TEXT",
+                    "name": "family_name",
+                    "required": true
+                },
+                {
+                    "label": "Nationality",
+                    "type": "TEXT",
+                    "name": "nationality",
+                    "required": true
+                },
+                {
+                    "label": "Passport number",
+                    "type": "TEXT",
+                    "name": "passport_number",
+                    "required": true
+                },
+                {
+                    "label": "Date of issue",
+                    "type": "DATE",
+                    "name": "passport_issue_date",
+                    "required": false
+                },
+                {
+                    "label": "Date of expiry",
+                    "type": "DATE",
+                    "name": "passport_expiry_date",
+                    "required": false
+                },
+                {
+                    "label": "Issuing authority",
+                    "type": "TEXT",
+                    "name": "passport_issuing_authority",
+                    "required": false
+                },
+                {
+                    "label": "Telephone number",
+                    "type": "TEXT",
+                    "name": "telephone_number",
+                    "required": true
+                },
+                {
+                    "label": "Are you now or have you ever been known by another name?",
+                    "type": "RADIO",
+                    "name": "other_name",
+                    "required": true,
+                    "options": [
+                        {
+                            "label": "Yes – please provide the full name and reason, e.g. maiden name",
+                            "value": "yes"
+                        },
+                        {
+                            "label": "No",
+                            "value": "no"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "title": "Relationship Information",
+            "order": 2,
+            "fields": [
+                {
+                    "label": "What is your relationship status?",
+                    "type": "RADIO",
+                    "name": "relationship_status",
+                    "required": true,
+                    "options": [
+                        {
+                            "label": "Single",
+                            "value": "single"
+                        },
+                        {
+                            "label": "Separated",
+                            "value": "separated"
+                        },
+                        {
+                            "label": "Divorced or civil partnership dissolved",
+                            "value": "divorced"
+                        },
+                        {
+                            "label": "Unmarried partner",
+                            "value": "unmarried_partner"
+                        },
+                        {
+                            "label": "Married or civil partner",
+                            "value": "married"
+                        }
+                    ]
+                },
+                {
+                    "label": "Partner’s given name(s)",
+                    "type": "TEXT",
+                    "name": "partner_given_names",
+                    "required": false
+                },
+                {
+                    "label": "Partner’s family name",
+                    "type": "TEXT",
+                    "name": "partner_family_name",
+                    "required": false
+                },
+                {
+                    "label": "Has your partner ever been known by another name?",
+                    "type": "RADIO",
+                    "name": "partner_other_name",
+                    "required": false,
+                    "options": [
+                        {
+                            "label": "Yes – please provide details of their other name",
+                            "value": "yes"
+                        },
+                        {
+                            "label": "No",
+                            "value": "no"
+                        }
+                    ]
+                },
+                {
+                    "label": "Partner’s date of birth",
+                    "type": "DATE",
+                    "name": "partner_dob",
+                    "required": false
+                },
+                {
+                    "label": "Partner’s nationality",
+                    "type": "TEXT",
+                    "name": "partner_nationality",
+                    "required": false
+                },
+                {
+                    "label": "Partner’s passport number",
+                    "type": "TEXT",
+                    "name": "partner_passport_number",
+                    "required": false
+                },
+                {
+                    "label": "Partner’s telephone number",
+                    "type": "TEXT",
+                    "name": "partner_telephone_number",
+                    "required": false
+                },
+                {
+                    "label": "Does your partner currently live with you?",
+                    "type": "RADIO",
+                    "name": "partner_lives_with_you",
+                    "required": false,
+                    "options": [
+                        {
+                            "label": "Yes – when did you start living together (dd/mm/yyyy)?",
+                            "value": "yes"
+                        },
+                        {
+                            "label": "No – please provide their address",
+                            "value": "no"
+                        }
+                    ]
+                },
+                {
+                    "label": "Will your partner be travelling with you to the UK?",
+                    "type": "RADIO",
+                    "name": "partner_travelling_with_you",
+                    "required": false,
+                    "options": [
+                        {
+                            "label": "Yes",
+                            "value": "yes"
+                        },
+                        {
+                            "label": "No",
+                            "value": "no"
+                        }
+                    ]
+                },
+                {
+                    "label": "Do you and your partner intend to continue living together in the UK?",
+                    "type": "RADIO",
+                    "name": "continue_living_together_uk",
+                    "required": false,
+                    "options": [
+                        {
+                            "label": "Yes",
+                            "value": "yes"
+                        },
+                        {
+                            "label": "No – please provide details of your living arrangements",
+                            "value": "no"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "title": "Address Information",
+            "order": 3,
+            "fields": [
+                {
+                    "label": "What is your address?",
+                    "type": "TEXT",
+                    "name": "address",
+                    "required": true
+                },
+                {
+                    "label": "When did you start living at this address (mm/yyyy)?",
+                    "type": "TEXT",
+                    "name": "address_start_date",
+                    "required": false
+                },
+                {
+                    "label": "What is the ownership status of your home?",
+                    "type": "RADIO",
+                    "name": "home_ownership_status",
+                    "required": false,
+                    "options": [
+                        {
+                            "label": "I own it",
+                            "value": "own"
+                        },
+                        {
+                            "label": "I rent it",
+                            "value": "rent"
+                        },
+                        {
+                            "label": "Other (please give details in space below)",
+                            "value": "other"
+                        }
+                    ]
+                },
+                {
+                    "label": "Please give more details about your living situation, such as who you live with and who owns the property",
+                    "type": "TEXTAREA",
+                    "name": "living_situation_details",
+                    "required": false
+                },
+                {
+                    "label": "List your previous address history for the past two years below. Include when you started living there (mm/yyyy), and when you stopped living there (mm/yyyy)",
+                    "type": "TEXTAREA",
+                    "name": "previous_address_history",
+                    "required": false
+                }
+            ]
+        },
+        {
+            "title": "National Identity Card",
+            "order": 4,
+            "fields": [
+                {
+                    "label": "Do you have a valid National Identity card?",
+                    "type": "RADIO",
+                    "name": "has_national_id_card",
+                    "required": true,
+                    "options": [
+                        {
+                            "label": "Yes – please provide a copy of your National Identity card and proceed to fill the information below",
+                            "value": "yes"
+                        },
+                        {
+                            "label": "No",
+                            "value": "no"
+                        }
+                    ]
+                },
+                {
+                    "label": "National Identity card number",
+                    "type": "TEXT",
+                    "name": "national_id_card_number",
+                    "required": false
+                },
+                {
+                    "label": "Issuing authority",
+                    "type": "TEXT",
+                    "name": "national_id_issuing_authority",
+                    "required": false
+                },
+                {
+                    "label": "Issue date (if applicable)",
+                    "type": "DATE",
+                    "name": "national_id_issue_date",
+                    "required": false
+                },
+                {
+                    "label": "Expiry date (if applicable)",
+                    "type": "DATE",
+                    "name": "national_id_expiry_date",
+                    "required": false
+                }
+            ]
+        }
+    ]
+}

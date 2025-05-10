@@ -26,31 +26,20 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http
-                .csrf(csrf -> csrf.disable())
-                .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers(
-                                "/api/workspace/v3/api-docs/**",
-                                "/api/workspace/swagger-ui/**",
-                                "/webjars/**"
-                        ).permitAll()
-                        .requestMatchers(
-                                "/health"
-                        ).permitAll()
-                        .requestMatchers(
-                                "/workspaces/current",
-                                "/workspaces/members/*/default"
-                        ).authenticated()
-                        .anyRequest().authenticated()
-                )
+		http.csrf(csrf -> csrf.disable())
+			.authorizeHttpRequests(authorize -> authorize
+				.requestMatchers("/api/gatekeeper/v3/api-docs/**", "/api/gatekeeper/swagger-ui/**", "/webjars/**",
+						"/health", "/admin/**", "/css/**", "/js/**", "/images/**", "/api/gatekeeper/swagger-ui.html",
+						"/api/gatekeeper/v3/api-docs/**")
+				.permitAll()
+				// .anyRequest().authenticated()
+				.anyRequest()
+				.permitAll())
                 .exceptionHandling(exceptionHandling -> exceptionHandling
                         .authenticationEntryPoint(new ProblemDetailsAuthenticationEntryPoint())
                         .accessDeniedHandler(new ProblemDetailsAuthenticationEntryPoint()))
                 .oauth2ResourceServer(oauth2 -> oauth2
-                        .jwt(jwt -> jwt
-                                .jwtAuthenticationConverter(jwtAuthenticationConverter())
-                        )
-                );
+				.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter())));
 
         return http.build();
     }

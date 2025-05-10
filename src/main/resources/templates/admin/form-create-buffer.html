@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Ginkgoo AI Gateway Keeper -Create Form Definitions</title>
+    <link rel="stylesheet" th:href="@{/css/buffer-ui.css}"/>
+</head>
+<body>
+
+<div class="page-container">
+    <header class="page-header">
+        <div class="logo-title">
+            <img th:src="@{https://uploads.linear.app/fee8b358-afe7-4f9d-8ec6-bbcc84fb2a90/aa77c589-9a7f-4c32-9403-547ffb4a2616/256x256/65e10f8a-3bf4-4aa9-86ad-4b4713e1a8db}"
+                 alt="Logo" class="logo"/>
+            <h1>Ginkgoo AI Gateway Keeper</h1>
+        </div>
+        <a th:href="@{/admin/forms}" class="btn btn-secondary">Back to List</a>
+    </header>
+
+    <div class="card">
+        <div class="card-body">
+            <div th:if="${errorMessage}" class="error-message"
+                 style="border: 1px solid #d9534f; background-color: #f2dede; color: #a94442; padding: 10px; margin-bottom:15px; border-radius: 4px;">
+                <p th:text="${errorMessage}"></p>
+            </div>
+
+            <div class="view-toggle">
+                <button id="uiViewBtn" class="btn active" onclick="switchView('ui')">UI Builder</button>
+                <button id="jsonViewBtn" class="btn" onclick="switchView('json')">JSON Import</button>
+                <button id="imageViewBtn" class="btn" onclick="switchView('image')">Image Import</button>
+            </div>
+
+            <div id="jsonPanel" class="json-panel" style="display: none;">
+                <h3>Import Form Definition from JSON</h3>
+                <p>Paste your complete form definition JSON below:</p>
+                <div class="json-editor-container">
+                    <div class="line-numbers" id="jsonLineNumbers"></div>
+                    <textarea id="jsonImport" rows="15" onscroll="syncScroll(this)" onkeyup="updateLineNumbers(this)"
+                              oninput="updateLineNumbers(this)" spellcheck="false"></textarea>
+                </div>
+                <div id="jsonValidationResult" style="display: none;"></div>
+                <div class="button-group">
+                    <button class="btn btn-primary" onclick="importFromJson()">Import and Edit</button>
+                    <button class="btn btn-secondary" onclick="validateJson()">Validate JSON</button>
+                    <button class="btn btn-secondary" onclick="formatJson()">Format JSON</button>
+                </div>
+            </div>
+
+            <div id="imagePanel" class="json-panel" style="display: none;">
+                <h3>Import Form Definition from Image</h3>
+                <p>Select an image of a form, and AI will try to convert it to JSON.</p>
+                <div class="form-group">
+                    <label for="imageUpload">Upload Image:</label>
+                    <input type="file" id="imageUpload" class="form-control" accept="image/*"
+                           onchange="handleImageUpload(event)">
+                </div>
+                <div id="imagePreviewContainer">
+                    <img id="imagePreview" src="#" alt="Image Preview"
+                         style="display:none; max-width: 100%; height: auto;"/>
+                    <span id="imagePreviewPlaceholder">Image Preview</span>
+                </div>
+                <div id="imageProcessingResult" style="display: none;"></div>
+                <div class="button-group">
+                    <button id="processImageBtn" class="btn btn-primary" onclick="processImage()" disabled>Process Image
+                        with AI
+                    </button>
+                </div>
+            </div>
+
+            <form th:action="@{/admin/forms}" th:object="${createRequest}" method="post" id="createFormDefinitionForm"
+                  onsubmit="return validateFormBeforeSubmit()">
+                <div class="form-group">
+                    <label for="formType">Form Type:</label>
+                    <select id="formType" th:field="*{formType}" class="form-control" required>
+                        <option th:each="type : ${T(com.ginkgooai.core.gatekeeper.enums.FormType).values()}"
+                                th:value="${type}" th:text="${type.name()}"></option>
+                    </select>
+                    <div th:if="${#fields.hasErrors('formType')}" th:errors="*{formType}"
+                         class="field-error-message"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="formName">Name:</label>
+                    <input type="text" id="formName" th:field="*{name}" class="form-control" required/>
+                    <div th:if="${#fields.hasErrors('name')}" th:errors="*{name}" class="field-error-message"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="formVersion">Version:</label>
+                    <input type="text" id="formVersion" th:field="*{version}" class="form-control"
+                           placeholder="e.g., 1.0.0"/>
+                    <div th:if="${#fields.hasErrors('version')}" th:errors="*{version}"
+                         class="field-error-message"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="formDescription">Description:</label>
+                    <textarea id="formDescription" th:field="*{description}" class="form-control"></textarea>
+                    <div th:if="${#fields.hasErrors('description')}" th:errors="*{description}"
+                         class="field-error-message"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="formTargetAudience">Target Audience:</label>
+                    <input type="text" id="formTargetAudience" th:field="*{targetAudience}" class="form-control"/>
+                    <div th:if="${#fields.hasErrors('targetAudience')}" th:errors="*{targetAudience}"
+                         class="field-error-message"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="formInitialLogic">Initial Logic (JSON):</label>
+                    <textarea id="formInitialLogic" th:field="*{initialLogic}" class="form-control"
+                              placeholder='e.g., {"prefillFields": ["userId"]}'></textarea>
+                    <div th:if="${#fields.hasErrors('initialLogic')}" th:errors="*{initialLogic}"
+                         class="field-error-message"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="formSubmissionLogic">Full Submission Logic (JSON Override - Advanced):</label>
+                    <textarea id="formSubmissionLogic" th:field="*{submissionLogic}" class="form-control"
+                              placeholder='Advanced: Define full submission logic. Overrides Target Service field if set.'></textarea>
+                    <div th:if="${#fields.hasErrors('submissionLogic')}" th:errors="*{submissionLogic}"
+                         class="field-error-message"></div>
+                </div>
+
+                <hr>
+                <h3>Sections</h3>
+                <div id="sectionsContainer">
+                    <div th:each="section, secStat : *{sections}" class="nested-item section">
+                        <input type="hidden" th:field="*{sections[__${secStat.index}__].id}"/>
+                        <button type="button" class="btn btn-sm btn-danger remove-btn"
+                                onclick="this.closest('.section').remove()">Remove Section
+                        </button>
+                        <h4>Section <span class="section-index" th:text="${secStat.index + 1}"></span></h4>
+                        <div class="form-group">
+                            <label th:for="${'sections' + secStat.index + 'title'}">Title:</label>
+                            <input type="text" th:field="*{sections[__${secStat.index}__].title}" class="form-control"
+                                   th:id="${'sections' + secStat.index + 'title'}"/>
+                        </div>
+                        <div class="form-group">
+                            <label th:for="${'sections' + secStat.index + 'order'}">Order:</label>
+                            <input type="number" th:field="*{sections[__${secStat.index}__].order}" class="form-control"
+                                   th:id="${'sections' + secStat.index + 'order'}"/>
+                        </div>
+                        <div class="form-group">
+                            <label th:for="${'sections' + secStat.index + 'condition'}">Display Condition:</label>
+                            <input type="text" th:field="*{sections[__${secStat.index}__].condition}"
+                                   class="form-control" th:id="${'sections' + secStat.index + 'condition'}"
+                                   placeholder="e.g., fields['otherField'].value == 'someValue'"/>
+                        </div>
+
+                        <h5>Fields</h5>
+                        <div class="fieldsContainer">
+                            <div th:each="field, fieldStat : *{sections[__${secStat.index}__].fields}"
+                                 class="nested-item field">
+                                <input type="hidden"
+                                       th:field="*{sections[__${secStat.index}__].fields[__${fieldStat.index}__].id}"/>
+                                <button type="button" class="btn btn-sm btn-danger remove-btn"
+                                        onclick="this.closest('.field').remove()">Remove Field
+                                </button>
+                                <h5>Field <span class="field-index" th:text="${fieldStat.index + 1}"></span></h5>
+                                <div class="form-group">
+                                    <label>Name (Key):</label><input type="text"
+                                                                     th:field="*{sections[__${secStat.index}__].fields[__${fieldStat.index}__].name}"
+                                                                     class="form-control"/>
+                                </div>
+                                <div class="form-group">
+                                    <label>Label:</label><input type="text"
+                                                                th:field="*{sections[__${secStat.index}__].fields[__${fieldStat.index}__].label}"
+                                                                class="form-control"/>
+                                </div>
+                                <div class="form-group">
+                                    <label>Field Type:</label>
+                                    <select th:field="*{sections[__${secStat.index}__].fields[__${fieldStat.index}__].fieldType}"
+                                            class="form-control">
+                                        <option th:each="ft : ${T(com.ginkgooai.core.gatekeeper.domain.types.FieldType).values()}"
+                                                th:value="${ft}"
+                                                th:text="${#strings.capitalize(#strings.toLowerCase(ft.name()).replace('_',' '))}"></option>
+                                    </select>
+                                </div>
+                                <div class="form-group"><label>Static Options (JSON):</label><textarea
+                                        th:field="*{sections[__${secStat.index}__].fields[__${fieldStat.index}__].staticOptions}"
+                                        class="form-control"
+                                        placeholder='e.g., [{"value":"v1","label":"Opt1"}]'></textarea></div>
+                                <div class="form-group"><label>Order:</label><input type="number"
+                                                                                    th:field="*{sections[__${secStat.index}__].fields[__${fieldStat.index}__].order}"
+                                                                                    class="form-control"/></div>
+                                <h6>Validation Rules</h6>
+                                <div class="validationsContainer">
+                                    <div th:each="rule, ruleStat : *{sections[__${secStat.index}__].fields[__${fieldStat.index}__].validations}"
+                                         class="nested-item validation-rule">
+                                        <input type="hidden"
+                                               th:field="*{sections[__${secStat.index}__].fields[__${fieldStat.index}__].validations[__${ruleStat.index}__].id}"/>
+                                        <button type="button" class="btn btn-sm btn-danger remove-btn"
+                                                onclick="this.closest('.validation-rule').remove()">Remove Rule
+                                        </button>
+                                        <h6>Rule <span class="validation-rule-index"
+                                                       th:text="${ruleStat.index + 1}"></span></h6>
+                                        <div class="form-group">
+                                            <label>Rule Type:</label>
+                                            <select th:field="*{sections[__${secStat.index}__].fields[__${fieldStat.index}__].validations[__${ruleStat.index}__].type}"
+                                                    class="form-control">
+                                                <option th:each="rt : ${T(com.ginkgooai.core.gatekeeper.domain.types.ValidationRuleType).values()}"
+                                                        th:value="${rt}"
+                                                        th:text="${#strings.capitalize(#strings.toLowerCase(rt.name()).replace('_',' '))}"></option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group"><label>Value:</label><input type="text"
+                                                                                            th:field="*{sections[__${secStat.index}__].fields[__${fieldStat.index}__].validations[__${ruleStat.index}__].value}"
+                                                                                            class="form-control"/></div>
+                                        <div class="form-group"><label>Error Message:</label><input type="text"
+                                                                                                    th:field="*{sections[__${secStat.index}__].fields[__${fieldStat.index}__].validations[__${ruleStat.index}__].errorMessage}"
+                                                                                                    class="form-control"/>
+                                        </div>
+                                    </div>
+                                </div>
+                                <button type="button" class="btn btn-sm btn-secondary add-validation-rule-btn"
+                                        onclick="addValidationRule(this)">Add Validation Rule
+                                </button>
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-secondary add-field-btn" onclick="addField(this)">Add Field
+                            to Section
+                        </button>
+                    </div>
+                </div>
+                <button type="button" class="btn btn-primary add-btn" onclick="addSection()">Add Section</button>
+                <hr>
+
+                <div class="form-actions"
+                     style="margin-top: 30px; padding-top: var(--spacing-lg); border-top: 1px solid var(--border-color-light); display: flex; justify-content: flex-start; gap: var(--spacing-md);">
+                    <button type="submit" class="btn btn-primary">Submit</button>
+                    <a th:href="@{/admin/forms}" class="btn btn-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div th:fragment="sectionTemplate" class="nested-item section" style="display:none;" id="sectionTemplate">
+    <button type="button" class="btn btn-sm btn-danger remove-btn" onclick="removeElement(this.closest('.section'))">
+        Remove Section
+    </button>
+    <h4>New Section (<span class="section-index"></span>)</h4>
+    <div class="form-group">
+        <label>Title:</label>
+        <input type="text" data-name="title" class="form-control"/>
+    </div>
+    <div class="form-group">
+        <label>Order:</label>
+        <input type="number" data-name="order" class="form-control"/>
+    </div>
+    <div class="form-group">
+        <label>Display Condition:</label>
+        <input type="text" data-name="condition" class="form-control"
+               placeholder="e.g., fields['otherField'].value == 'someValue'"/>
+    </div>
+
+    <h5>Fields</h5>
+    <div class="fieldsContainer">
+        <!-- Fields will be dynamically added here -->
+    </div>
+    <button type="button" class="btn btn-secondary add-field-btn" onclick="addField(this)">Add Field to Section</button>
+</div>
+
+<div th:fragment="fieldTemplate" class="nested-item field" style="display:none;" id="fieldTemplate">
+    <button type="button" class="btn btn-sm btn-danger remove-btn" onclick="removeElement(this.closest('.field'))">
+        Remove Field
+    </button>
+    <h5>New Field (<span class="field-index"></span>)</h5>
+    <div class="form-group">
+        <label>Name (Key):</label><input type="text" data-name="name" class="form-control"/>
+    </div>
+    <div class="form-group">
+        <label>Label:</label><input type="text" data-name="label" class="form-control"/>
+    </div>
+    <div class="form-group">
+        <label>Field Type:</label>
+        <select data-name="fieldType" class="form-control">
+            <option th:each="ft : ${T(com.ginkgooai.core.gatekeeper.domain.types.FieldType).values()}" th:value="${ft}"
+                    th:text="${#strings.capitalize(#strings.toLowerCase(ft.name()).replace('_',' '))}"></option>
+        </select>
+    </div>
+    <div class="form-group"><label>Static Options (JSON):</label><textarea data-name="staticOptions"
+                                                                           class="form-control"
+                                                                           placeholder='e.g., [{"value":"v1","label":"Opt1"}]'></textarea>
+    </div>
+    <div class="form-group"><label>Order:</label><input type="number" data-name="order" class="form-control"/></div>
+    <h6>Validation Rules</h6>
+    <div class="validationsContainer">
+        <!-- Validation rules will be dynamically added here -->
+    </div>
+    <button type="button" class="btn btn-sm btn-secondary add-validation-rule-btn" onclick="addValidationRule(this)">Add
+        Validation Rule
+    </button>
+</div>
+
+<div th:fragment="validationRuleTemplate" class="nested-item validation-rule" style="display:none;"
+     id="validationRuleTemplate">
+    <button type="button" class="btn btn-sm btn-danger remove-btn"
+            onclick="removeElement(this.closest('.validation-rule'))">Remove Rule
+    </button>
+    <h6>New Rule (<span class="validation-rule-index"></span>)</h6>
+    <div class="form-group">
+        <label>Rule Type:</label>
+        <select data-name="type" class="form-control">
+            <option th:each="rt : ${T(com.ginkgooai.core.gatekeeper.domain.types.ValidationRuleType).values()}"
+                    th:value="${rt}"
+                    th:text="${#strings.capitalize(#strings.toLowerCase(rt.name()).replace('_',' '))}"></option>
+        </select>
+    </div>
+    <div class="form-group"><label>Value:</label><input type="text" data-name="value" class="form-control"/></div>
+    <div class="form-group"><label>Error Message:</label><input type="text" data-name="errorMessage"
+                                                                class="form-control"/></div>
+</div>
+
+<script th:inline="javascript">
+  /*<![CDATA[*/
+
+  const FormType = /*[[${T(com.ginkgooai.core.gatekeeper.enums.FormType).values()}]]*/ [];
+  const FieldType = /*[[${T(com.ginkgooai.core.gatekeeper.domain.types.FieldType).values()}]]*/ [];
+  const ValidationRuleType = /*[[${T(com.ginkgooai.core.gatekeeper.domain.types.ValidationRuleType).values()}]]*/ [];
+  const FormStatus = /*[[${T(com.ginkgooai.core.gatekeeper.domain.FormDefinition.FormStatus).values()}]]*/ [];
+
+  function capitalizeAndReplaceUnderscore(text) {
+    if (!text) return '';
+    return text.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase());
+  }
+
+  function populateSelect(selectElement, optionsArray) {
+    optionsArray.forEach(opt => {
+      const option = document.createElement('option');
+      option.value = opt;
+      option.textContent = capitalizeAndReplaceUnderscore(opt);
+      selectElement.appendChild(option);
+    });
+  }
+
+  function removeElement(element) {
+    element.remove();
+    updateNames('#sectionsContainer', 'formDefinitionDTO.');
+  }
+
+  function updateNames(containerSelector, prefix) {
+    const container = document.querySelector(containerSelector) || document;
+
+    const sections = container.querySelectorAll(':scope > .section');
+    sections.forEach((section, sectionIndex) => {
+      const sectionPrefix = prefix + "sections[" + sectionIndex + "].";
+      section.querySelectorAll(':scope > .form-group [data-name], :scope > input[type=hidden][data-name]').forEach(input => {
+        input.name = sectionPrefix + input.dataset.name;
+      });
+      if (section.querySelector('.section-index')) section.querySelector('.section-index').textContent = sectionIndex + 1;
+
+      const fieldsContainer = section.querySelector(':scope > .fieldsContainer');
+      if (fieldsContainer) {
+        const fields = fieldsContainer.querySelectorAll(':scope > .field');
+        fields.forEach((field, fieldIndex) => {
+          const fieldPrefix = sectionPrefix + "fields[" + fieldIndex + "].";
+          field.querySelectorAll(':scope > .form-group [data-name], :scope > input[type=hidden][data-name]').forEach(input => {
+            input.name = fieldPrefix + input.dataset.name;
+          });
+          if (field.querySelector('.field-index')) field.querySelector('.field-index').textContent = fieldIndex + 1;
+
+          const validationsContainer = field.querySelector(':scope > .validationsContainer');
+          if (validationsContainer) {
+            const rules = validationsContainer.querySelectorAll(':scope > .validation-rule');
+            rules.forEach((rule, ruleIndex) => {
+              const rulePrefix = fieldPrefix + "validations[" + ruleIndex + "].";
+              rule.querySelectorAll(':scope > .form-group [data-name], :scope > input[type=hidden][data-name]').forEach(input => {
+                input.name = rulePrefix + input.dataset.name;
+              });
+              if (rule.querySelector('.validation-rule-index')) rule.querySelector('.validation-rule-index').textContent = ruleIndex + 1;
+            });
+          }
+        });
+      }
+    });
+  }
+
+  function addSection() {
+    const template = document.getElementById('sectionTemplate').cloneNode(true);
+    template.style.display = '';
+    template.removeAttribute('id');
+    document.getElementById('sectionsContainer').appendChild(template);
+    const idInput = document.createElement('input');
+    idInput.type = 'hidden';
+    idInput.dataset.name = 'id';
+    template.insertBefore(idInput, template.firstChild);
+    updateNames('#createFormDefinitionForm', 'formDefinitionDTO.');
+  }
+
+  function addField(buttonElement) {
+    const sectionDiv = buttonElement.closest('.section');
+    const fieldsContainer = sectionDiv.querySelector('.fieldsContainer');
+    const template = document.getElementById('fieldTemplate').cloneNode(true);
+    template.style.display = '';
+    template.removeAttribute('id');
+    fieldsContainer.appendChild(template);
+    const idInput = document.createElement('input');
+    idInput.type = 'hidden';
+    idInput.dataset.name = 'id';
+    template.insertBefore(idInput, template.firstChild);
+
+    const fieldTypeSelect = template.querySelector('select[data-name="fieldType"]');
+    populateSelect(fieldTypeSelect, FieldType);
+
+    updateNames('#createFormDefinitionForm', 'formDefinitionDTO.');
+  }
+
+  function addValidationRule(buttonElement) {
+    const fieldDiv = buttonElement.closest('.field');
+    const validationsContainer = fieldDiv.querySelector('.validationsContainer');
+    const template = document.getElementById('validationRuleTemplate').cloneNode(true);
+    template.style.display = '';
+    template.removeAttribute('id');
+    validationsContainer.appendChild(template);
+    const idInput = document.createElement('input');
+    idInput.type = 'hidden';
+    idInput.dataset.name = 'id';
+    template.insertBefore(idInput, template.firstChild);
+
+    const ruleTypeSelect = template.querySelector('select[data-name="type"]');
+    populateSelect(ruleTypeSelect, ValidationRuleType);
+
+    updateNames('#createFormDefinitionForm', 'formDefinitionDTO.');
+  }
+
+  function switchView(viewType) {
+    document.getElementById('jsonPanel').style.display = 'none';
+    document.getElementById('createFormDefinitionForm').style.display = 'none';
+    document.getElementById('imagePanel').style.display = 'none';
+
+    document.querySelectorAll('.view-toggle .btn').forEach(btn => btn.classList.remove('btn-primary', 'active'));
+    document.querySelectorAll('.view-toggle .btn').forEach(btn => btn.classList.add('btn-secondary'));
+
+    if (viewType === 'json') {
+      document.getElementById('jsonPanel').style.display = 'block';
+      const btn = document.getElementById('jsonViewBtn');
+      btn.classList.add('btn-primary', 'active');
+      btn.classList.remove('btn-secondary');
+    } else if (viewType === 'image') {
+      document.getElementById('imagePanel').style.display = 'block';
+      const btn = document.getElementById('imageViewBtn');
+      btn.classList.add('btn-primary', 'active');
+      btn.classList.remove('btn-secondary');
+    } else {
+      document.getElementById('createFormDefinitionForm').style.display = 'block';
+      const btn = document.getElementById('uiViewBtn');
+      btn.classList.add('btn-primary', 'active');
+      btn.classList.remove('btn-secondary');
+    }
+  }
+
+  function importFromJson() {
+    try {
+      const jsonText = document.getElementById('jsonImport').value;
+      if (!jsonText) {
+        showJsonValidationResult(false, "Please enter JSON content first");
+        return;
+      }
+      const formData = JSON.parse(jsonText);
+      if (!formData.name) {
+        showJsonValidationResult(false, "Form must have a name");
+        return;
+      }
+      clearAndPopulateForm(formData);
+      updateNames('#createFormDefinitionForm', 'formDefinitionDTO.');
+      switchView('ui');
+      showMessage("JSON data imported to UI Builder.", "success");
+    } catch (e) {
+      console.error('JSON parsing/import error:', e);
+      showJsonValidationResult(false, "Invalid JSON or import error: " + e.message);
+    }
+  }
+
+  function clearAndPopulateForm(formData) {
+    document.getElementById('createFormDefinitionForm').reset();
+    document.getElementById('sectionsContainer').innerHTML = '';
+
+    if (formData.name) document.getElementById('formName').value = formData.name;
+    if (formData.title) document.getElementById('formTitle').value = formData.title;
+    if (formData.formType) document.getElementById('formType').value = formData.formType;
+    if (formData.status) document.getElementById('formStatus').value = formData.status;
+    if (formData.version) document.getElementById('formVersion').value = formData.version;
+    if (formData.description) document.getElementById('formDescription').value = formData.description;
+    if (formData.targetAudience) document.getElementById('formTargetAudience').value = formData.targetAudience;
+
+    if (formData.initialLogic) {
+      document.getElementById('formInitialLogic').value = (typeof formData.initialLogic === 'object') ?
+          JSON.stringify(formData.initialLogic, null, 2) : formData.initialLogic.toString();
+    } else {
+      document.getElementById('formInitialLogic').value = '';
+    }
+
+    if (formData.submissionLogic) {
+      const submissionLogicObj = (typeof formData.submissionLogic === 'string') ?
+          JSON.parse(formData.submissionLogic) : formData.submissionLogic;
+      if (submissionLogicObj && submissionLogicObj.targetService) {
+        document.getElementById('submissionLogicTargetService').value = submissionLogicObj.targetService;
+        if (Object.keys(submissionLogicObj).length > 1) {
+          document.getElementById('formSubmissionLogic').value = JSON.stringify(submissionLogicObj, null, 2);
+        } else {
+          document.getElementById('formSubmissionLogic').value = '';
+        }
+      } else {
+        document.getElementById('submissionLogicTargetService').value = '';
+        document.getElementById('formSubmissionLogic').value = (typeof formData.submissionLogic === 'object') ?
+            JSON.stringify(formData.submissionLogic, null, 2) : formData.submissionLogic.toString();
+      }
+    } else {
+      document.getElementById('submissionLogicTargetService').value = '';
+      document.getElementById('formSubmissionLogic').value = '';
+    }
+
+    if (formData.sections && Array.isArray(formData.sections)) {
+      formData.sections.forEach(sectionData => {
+        const sectionEl = addSectionFromData(sectionData);
+        if (sectionData.fields && Array.isArray(sectionData.fields)) {
+          sectionData.fields.forEach(fieldData => {
+            const fieldEl = addFieldFromData(sectionEl, fieldData);
+            if (fieldData.validations && Array.isArray(fieldData.validations)) {
+              fieldData.validations.forEach(validationData => {
+                addValidationRuleFromData(fieldEl, validationData);
+              });
+            }
+          });
+        }
+      });
+    }
+  }
+
+  function validateJson() {
+    const jsonTextarea = document.getElementById('jsonImport');
+    const jsonText = jsonTextarea.value;
+    if (!jsonText) {
+      showJsonValidationResult(false, "Please enter JSON content first");
+      return;
+    }
+    try {
+      JSON.parse(jsonText);
+      fetch('/admin/forms/validate-json', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json', ...getCSRFHeaders()},
+        body: jsonText
+      })
+          .then(response => response.json())
+          .then(data => {
+            if (data.valid && data.preview) {
+              let message = `<b>JSON Valid</b>:<br>Name: ${data.preview.name || 'N/A'}<br>`;
+              message += `Type: ${data.preview.formType || 'N/A'}<br>`;
+              message += `Sections: ${data.preview.sectionsCount || 0}, Fields: ${data.preview.fieldsCount || 0}`;
+              showJsonValidationResult(true, message);
+            } else {
+              showJsonValidationResult(false, data.message || "Validation failed on server.");
+            }
+          })
+          .catch(error => {
+            console.error('Validation request error:', error);
+            showJsonValidationResult(false, "Server validation request failed: " + error.message);
+          });
+    } catch (e) {
+      console.error('JSON syntax error:', e);
+      const errorInfo = parseJsonError(e, jsonText);
+      showJsonErrorHighlight(errorInfo.message, errorInfo.line, errorInfo.column, jsonText);
+    }
+  }
+
+  function getCSRFHeaders() {
+    const token = document.querySelector('input[name="_csrf"]')?.value;
+    const header = document.querySelector('meta[name="_csrf_header"]')?.content;
+    return token && header ? {[header]: token} : {};
+  }
+
+  function parseJsonError(error, jsonText) {
+    const errorMsg = error.message;
+    const positionMatch = errorMsg.match(/at position (\d+)/);
+    const lineColumnMatch = errorMsg.match(/at line (\d+) column (\d+)/);
+
+    let position = null, line = null, column = null;
+
+    if (lineColumnMatch) {
+      line = parseInt(lineColumnMatch[1], 10);
+      column = parseInt(lineColumnMatch[2], 10);
+    } else if (positionMatch) {
+      position = parseInt(positionMatch[1], 10);
+      const textBeforePosition = jsonText.substring(0, position);
+      const lines = textBeforePosition.split('\n');
+      line = lines.length;
+      column = lines[lines.length - 1].length + 1;
+    }
+
+    return {
+      message: errorMsg,
+      line: line,
+      column: column,
+      position: position
+    };
+  }
+
+  function showJsonErrorHighlight(message, line, column, jsonText) {
+    let errorMsg = `<div style="color:var(--danger-text);font-weight:bold;">JSON Syntax Error</div>`;
+    const resultEl = document.getElementById('jsonValidationResult');
+
+    if (line && column) {
+      errorMsg += `(Line ${line}, Column ${column}):`;
+      const lines = jsonText.split('\n');
+      if (line <= lines.length) {
+        const errorLineContent = lines[line - 1];
+        let codeHtml = '<div style="background-color:var(--bg-input-disabled); padding:var(--spacing-xs); margin-top:var(--spacing-sm); border-radius:var(--border-radius-md); font-family:monospace; white-space:pre-wrap; overflow-x:auto;">';
+        const context = 2;
+        const start = Math.max(0, line - 1 - context);
+        const end = Math.min(lines.length - 1, line - 1 + context);
+
+        for (let i = start; i <= end; i++) {
+          const currentLineNum = i + 1;
+          const lineContent = lines[i].replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+          if (i === line - 1) {
+            codeHtml += `<div style="background-color:var(--danger-bg); color:var(--danger-text);"><span style="color:var(--text-tertiary); margin-right:var(--spacing-sm);">${currentLineNum}</span>${lineContent.substring(0, column - 1)}<span style="text-decoration:underline; text-decoration-color: var(--danger-main);">${lineContent.substring(column - 1, column)}</span>${lineContent.substring(column)}</div>`;
+          } else {
+            codeHtml += `<div><span style="color:var(--text-tertiary); margin-right:var(--spacing-sm);">${currentLineNum}</span>${lineContent}</div>`;
+          }
+        }
+        codeHtml += '</div>';
+        errorMsg += codeHtml;
+      }
+    }
+    errorMsg += `<div style="margin-top:var(--spacing-sm);">${message}</div>`;
+    showJsonValidationResult(false, errorMsg);
+
+    if (line) {
+      const textarea = document.getElementById('jsonImport');
+      textarea.focus();
+      const lines = textarea.value.split('\n');
+      let pos = 0;
+      for (let i = 0; i < line - 1; i++) pos += lines[i].length + 1;
+      textarea.setSelectionRange(pos + column - 1, pos + column);
+      const lineHeight = parseFloat(getComputedStyle(textarea).lineHeight);
+      textarea.scrollTop = Math.max(0, (line - 3) * lineHeight);
+    }
+  }
+
+  function showMessage(message, type = 'info') {
+    const msgEl = document.createElement('div');
+    msgEl.className = `flash-message ${type}`;
+    msgEl.textContent = message;
+
+    msgEl.style.position = 'fixed';
+    msgEl.style.top = 'var(--spacing-lg)';
+    msgEl.style.right = 'var(--spacing-lg)';
+    msgEl.style.zIndex = '1055';
+    msgEl.style.transition = 'opacity 0.3s ease-in-out, transform 0.3s ease-in-out';
+    msgEl.style.opacity = '0';
+    msgEl.style.transform = 'translateY(-20px)';
+
+    document.body.appendChild(msgEl);
+
+    requestAnimationFrame(() => {
+      msgEl.style.opacity = '1';
+      msgEl.style.transform = 'translateY(0)';
+    });
+
+    setTimeout(() => {
+      msgEl.style.opacity = '0';
+      msgEl.style.transform = 'translateY(-20px)';
+      setTimeout(() => document.body.removeChild(msgEl), 300);
+    }, 3500);
+  }
+
+  function addSectionFromData(sectionData) {
+    const template = document.getElementById('sectionTemplate').cloneNode(true);
+    template.style.display = '';
+    template.removeAttribute('id');
+    if (sectionData.id) {
+      const idInput = document.createElement('input');
+      idInput.type = 'hidden';
+      idInput.dataset.name = 'id';
+      idInput.value = sectionData.id;
+      template.insertBefore(idInput, template.firstChild);
+    }
+    setInputValue(template, 'title', sectionData.title);
+    setInputValue(template, 'order', sectionData.order);
+    setInputValue(template, 'condition', sectionData.condition);
+    document.getElementById('sectionsContainer').appendChild(template);
+    return template;
+  }
+
+  function addFieldFromData(sectionEl, fieldData) {
+    const fieldsContainer = sectionEl.querySelector('.fieldsContainer');
+    const template = document.getElementById('fieldTemplate').cloneNode(true);
+    template.style.display = '';
+    template.removeAttribute('id');
+    if (fieldData.id) {
+      const idInput = document.createElement('input');
+      idInput.type = 'hidden';
+      idInput.dataset.name = 'id';
+      idInput.value = fieldData.id;
+      template.insertBefore(idInput, template.firstChild);
+    }
+    setInputValue(template, 'name', fieldData.name);
+    setInputValue(template, 'label', fieldData.label);
+
+    const fieldTypeSelect = template.querySelector('select[data-name="fieldType"]');
+    populateSelect(fieldTypeSelect, FieldType);
+    setSelectValue(template, 'fieldType', fieldData.fieldType || fieldData.type);
+
+    setTextareaValue(template, 'staticOptions', fieldData.staticOptions || fieldData.options);
+    setInputValue(template, 'order', fieldData.order);
+    fieldsContainer.appendChild(template);
+    return template;
+  }
+
+  function addValidationRuleFromData(fieldEl, validationData) {
+    const validationsContainer = fieldEl.querySelector('.validationsContainer');
+    const template = document.getElementById('validationRuleTemplate').cloneNode(true);
+    template.style.display = '';
+    template.removeAttribute('id');
+    if (validationData.id) {
+      const idInput = document.createElement('input');
+      idInput.type = 'hidden';
+      idInput.dataset.name = 'id';
+      idInput.value = validationData.id;
+      template.insertBefore(idInput, template.firstChild);
+    }
+    const ruleTypeSelect = template.querySelector('select[data-name="type"]');
+    populateSelect(ruleTypeSelect, ValidationRuleType);
+
+    setInputValue(template, 'value', validationData.value);
+    setInputValue(template, 'errorMessage', validationData.errorMessage);
+    validationsContainer.appendChild(template);
+    return template;
+  }
+
+  function setInputValue(container, dataName, value) {
+    if (value !== undefined && value !== null) {
+      const input = container.querySelector(`[data-name="${dataName}"]`);
+      if (input) input.value = value;
+    }
+  }
+
+  function setSelectValue(container, dataName, value) {
+    if (value !== undefined && value !== null) {
+      const select = container.querySelector(`[data-name="${dataName}"]`);
+      if (select) {
+        const option = select.querySelector(`option[value="${value}"]`);
+        if (option) {
+          option.selected = true;
+        } else if (value) {
+          const newOption = new Option(value, value);
+          select.add(newOption);
+          newOption.selected = true;
+        }
+      }
+    }
+  }
+
+  function setTextareaValue(container, dataName, value) {
+    if (value !== undefined && value !== null) {
+      const textarea = container.querySelector(`[data-name="${dataName}"]`);
+      if (textarea) {
+        if (typeof value === 'object') {
+          textarea.value = JSON.stringify(value);
+        } else {
+          textarea.value = value;
+        }
+      }
+    }
+  }
+
+  function syncScroll(element) {
+    const lineNumbers = document.getElementById('jsonLineNumbers');
+    lineNumbers.scrollTop = element.scrollTop;
+  }
+
+  function updateLineNumbers(element) {
+    const lineNumbers = document.getElementById('jsonLineNumbers');
+    const lines = element.value.split('\n');
+    const count = lines.length;
+
+    let numbersContent = '';
+    for (let i = 1; i <= count; i++) {
+      numbersContent += i + '<br>';
+    }
+    lineNumbers.innerHTML = numbersContent;
+  }
+
+  function formatJson() {
+    try {
+      const jsonText = document.getElementById('jsonImport').value;
+      if (!jsonText.trim()) {
+        showJsonValidationResult(false, "Please enter JSON content first");
+        return;
+      }
+
+      const obj = JSON.parse(jsonText);
+      const formattedJson = JSON.stringify(obj, null, 2);
+      document.getElementById('jsonImport').value = formattedJson;
+      updateLineNumbers(document.getElementById('jsonImport'));
+      showJsonValidationResult(true, "JSON formatted successfully");
+    } catch (e) {
+      showJsonValidationResult(false, "JSON syntax error: " + e.message);
+    }
+  }
+
+  function showJsonValidationResult(isValid, message) {
+    const resultEl = document.getElementById('jsonValidationResult');
+    resultEl.style.display = 'block';
+    resultEl.className = isValid ? 'flash-message success' : 'flash-message error';
+    resultEl.innerHTML = message;
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    updateLineNumbers(document.getElementById('jsonImport'));
+  });
+
+  function validateFormBeforeSubmit() {
+    let isValid = true;
+    const submissionLogic = document.getElementById('formSubmissionLogic').value;
+    if (submissionLogic && submissionLogic.trim()) {
+      try {
+        JSON.parse(submissionLogic);
+      } catch (e) {
+        showMessage("Submission Logic is not valid JSON: " + e.message, "error");
+        document.getElementById('formSubmissionLogic').focus();
+        isValid = false;
+      }
+    }
+    const initialLogic = document.getElementById('formInitialLogic').value;
+    if (initialLogic && initialLogic.trim()) {
+      try {
+        JSON.parse(initialLogic);
+      } catch (e) {
+        showMessage("Initial Logic is not valid JSON: " + e.message, "error");
+        document.getElementById('formInitialLogic').focus();
+        isValid = false;
+      }
+    }
+    return isValid;
+  }
+
+  let selectedImageFile = null;
+
+  function handleImageUpload(event) {
+    const file = event.target.files[0];
+    if (file) {
+      selectedImageFile = file;
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        document.getElementById('imagePreview').src = e.target.result;
+        document.getElementById('imagePreview').style.display = 'block';
+        document.getElementById('imagePreviewPlaceholder').style.display = 'none';
+      }
+      reader.readAsDataURL(file);
+      document.getElementById('processImageBtn').disabled = false;
+      document.getElementById('imageProcessingResult').style.display = 'none';
+    } else {
+      selectedImageFile = null;
+      document.getElementById('imagePreview').style.display = 'none';
+      document.getElementById('imagePreviewPlaceholder').style.display = 'block';
+      document.getElementById('processImageBtn').disabled = true;
+    }
+  }
+
+  async function processImage() {
+    if (!selectedImageFile) {
+      showImageProcessingResult(false, "Please select an image first.");
+      return;
+    }
+
+    document.getElementById('processImageBtn').disabled = true;
+    document.getElementById('processImageBtn').textContent = 'Processing...';
+    showImageProcessingResult(null, "Processing image with AI. This may take a moment...");
+
+    const formData = new FormData();
+    formData.append('imageFile', selectedImageFile);
+
+    try {
+      const response = await fetch('/admin/forms/import-image', {
+        method: 'POST',
+        body: formData
+      });
+
+      document.getElementById('processImageBtn').textContent = 'Process Image with AI';
+
+      if (response.ok) {
+        const jsonResponse = await response.json();
+        if (jsonResponse && (typeof jsonResponse === 'object' || typeof jsonResponse === 'string')) {
+          const jsonString = typeof jsonResponse === 'object' ? JSON.stringify(jsonResponse, null, 2) : jsonResponse;
+          document.getElementById('jsonImport').value = jsonString;
+          updateLineNumbers(document.getElementById('jsonImport'));
+          showImageProcessingResult(true, "AI processing successful! JSON populated below. Review and then import.");
+
+          importFromJson();
+          switchView('ui');
+          showMessage("Image processed and form structure imported. Please review.", "success");
+
+        } else {
+          showImageProcessingResult(false, "AI processing completed, but the response was not valid JSON.");
+        }
+      } else {
+        const errorText = await response.text();
+        console.error("Image processing error:", response.status, errorText);
+        showImageProcessingResult(false, `Error processing image: ${response.status} - ${errorText || 'Server error'}`);
+        document.getElementById('processImageBtn').disabled = false;
+      }
+    } catch (error) {
+      console.error('Network or other error during image processing:', error);
+      showImageProcessingResult(false, "Network error or client-side issue: " + error.message);
+      document.getElementById('processImageBtn').textContent = 'Process Image with AI';
+      document.getElementById('processImageBtn').disabled = false;
+    }
+  }
+
+  function showImageProcessingResult(isSuccess, message) {
+    const resultEl = document.getElementById('imageProcessingResult');
+    resultEl.style.display = 'block';
+    resultEl.innerHTML = message;
+
+    if (isSuccess === true) {
+      resultEl.style.backgroundColor = 'var(--success-color)';
+      resultEl.style.color = '#fff';
+      resultEl.style.border = '1px solid #10703c';
+    } else if (isSuccess === false) {
+      resultEl.style.backgroundColor = 'var(--danger-color)';
+      resultEl.style.color = '#fff';
+      resultEl.style.border = '1px solid #a94442';
+    } else {
+      resultEl.style.backgroundColor = 'var(--info-color)';
+      resultEl.style.color = '#fff';
+      resultEl.style.border = '1px solid #2d91a1';
+    }
+  }
+
+  /*]]>*/
+</script>
+
+</body>
+</html>

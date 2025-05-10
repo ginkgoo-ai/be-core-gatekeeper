@@ -16,7 +16,7 @@ spring:
           issuer-uri: ${AUTH_SERVER}
   
   datasource:
-    url: jdbc:postgresql://${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}?currentSchema=workspace
+    url: jdbc:postgresql://${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}?currentSchema=gatekeeper
     username: ${POSTGRES_USER}
     password: ${POSTGRES_PASSWORD}
     driver-class-name: org.postgresql.Driver
@@ -27,14 +27,14 @@ spring:
       ddl-auto: validate
     show-sql: true
     properties:
-      hibernate.default_schema: workspace
+      hibernate.default_schema: gatekeeper
     
   flyway:
     enabled: true
     locations: classpath:db/migration
     baseline-on-migrate: true
-    schemas: workspace
-    table: flyway_workspace_history
+    schemas: gatekeeper
+    table: flyway_gatekeeper_history
   
   data:
     redis:
@@ -63,9 +63,19 @@ springdoc:
     path: /api/gatekeeper/swagger-ui.html
 
 
+langchain4j:
+  vertex-ai:
+    chat:
+      api-key: ${GOOGLE_CLOUD_API_KEY}
+      publisher: google
+      model-name: ${GOOGLE_MODEL_NAME}
+      temperature: 0.7
+      max-output-tokens: 2048
+      top-k: 40
+      top-p: 0.95
+
 logging:
   level:
     root: ${LOG_LEVEL_ROOT:INFO}
-    org.springframework.web.cors: ${LOG_LEVEL_SPRING_WEB_CORS:DEBUG}
-    org.springframework.security: ${LOG_LEVEL_SPRING_SECURITY:DEBUG}
+    org.springframework.security: ${LOG_LEVEL_SPRING_SECURITY:INFO}
     com.ginkgooai: ${LOG_LEVEL_GINKGOOAI:DEBUG}

@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ginkgoo AI Gateway Keeper - Form Definitions</title>
+    <link rel="stylesheet" th:href="@{/css/buffer-ui.css}"/>
+</head>
+<body>
+
+<div class="page-container">
+    <header class="page-header">
+        <div class="logo-title">
+            <img th:src="@{https://uploads.linear.app/fee8b358-afe7-4f9d-8ec6-bbcc84fb2a90/aa77c589-9a7f-4c32-9403-547ffb4a2616/256x256/65e10f8a-3bf4-4aa9-86ad-4b4713e1a8db}"
+                 alt="Logo" class="logo"/>
+            <h1>Ginkgoo AI Gateway Keeper</h1>
+        </div>
+        <a th:href="@{/admin/forms/new}" class="btn btn-primary">
+            <!-- Optional: Add an icon here e.g. + SVG -->
+            Create New Form
+        </a>
+    </header>
+
+    <!-- Filter Bar -->
+    <div class="card">
+        <div class="card-body">
+            <form th:action="@{/admin/forms}" method="get" class="filter-bar">
+                <div class="form-group">
+                    <label for="name">Filter by Name</label>
+                    <input type="text" id="name" name="name" th:value="${currentName}"
+                           placeholder="Enter form name..."/>
+                </div>
+                <div class="form-group">
+                    <label for="statusFilter">Filter by Status</label>
+                    <select id="statusFilter" name="status">
+                        <option value="">All Statuses</option>
+                        <option th:each="stat : ${T(com.ginkgooai.core.gatekeeper.domain.FormDefinition.FormStatus).values()}"
+                                th:value="${stat}"
+                                th:text="${stat.name().substring(0,1) + stat.name().substring(1).toLowerCase()}"
+                                th:selected="${stat == currentStatus}">
+                        </option>
+                    </select>
+                </div>
+                <div class="btn-group">
+                    <button type="submit" class="btn btn-primary">Apply Filters</button>
+                    <a th:href="@{/admin/forms}" class="btn btn-secondary">Clear Filters</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <!-- Flash Message Display -->
+    <div th:if="${errorMessage}" class="flash-message error">
+        <!-- Optional: SVG icon for error -->
+        <span th:text="${errorMessage}">Error message</span>
+    </div>
+    <div th:if="${successMessage}" class="flash-message success"> <!-- Changed from param.success for consistency -->
+        <!-- Optional: SVG icon for success -->
+        <span th:text="${successMessage}">Success message</span>
+    </div>
+    <!-- Legacy success message handling (can be removed if redirectAttributes are consistently used) -->
+    <div th:if="${param.success}" class="flash-message success">
+        <p th:if="${param.success[0] == 'updated'}">Form definition has been successfully updated.</p>
+        <p th:if="${param.success[0] == 'created'}">Form definition has been successfully created.</p>
+        <p th:if="${param.success[0] == 'deleted'}">Form definition has been successfully deleted.</p>
+    </div>
+
+
+    <!-- Table with Results -->
+    <div class="card">
+        <div class="card-body table-wrapper"> <!-- table-wrapper for overflow -->
+            <div th:if="${formPage.empty}" class="no-results-message">
+                <p>No form definitions found matching your criteria.</p>
+            </div>
+            <table th:unless="${formPage.empty}">
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Version</th>
+                    <th>Form Type</th>
+                    <th>Status</th>
+                    <th>Created At</th>
+                    <th>Updated At</th>
+                    <th>Actions</th>
+                    <th>Change Status</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="form : ${formPage.content}">
+                    <td th:text="${form.id}" style="font-size: var(--font-size-xs); color: var(--text-tertiary);"></td>
+                    <td>
+                        <a th:href="@{/admin/forms/edit/{id}(id=${form.id})}" th:text="${form.name}"
+                           title="Edit Form"></a>
+                    </td>
+                    <td th:text="${form.version}"></td>
+                    <td th:text="${form.formType != null ? form.formType.name() : 'N/A'}"></td>
+                    <td>
+                            <span th:if="${form.status != null}"
+                                  th:text="${form.status.name()}"
+                                  th:classappend="${form.status.name() == 'PUBLISHED' ? 'published' : (form.status.name() == 'DRAFT' ? 'draft' : 'archived')}"
+                                  class="status-badge">
+                            </span>
+                        <span th:unless="${form.status != null}" class="status-badge">N/A</span>
+                    </td>
+                    <td th:text="${form.createdAt != null ? #temporals.format(form.createdAt, 'dd MMM yyyy, HH:mm') : 'N/A'}"></td>
+                    <td th:text="${form.updatedAt != null ? #temporals.format(form.updatedAt, 'dd MMM yyyy, HH:mm') : 'N/A'}"></td>
+                    <td class="actions-cell">
+                        <a th:href="@{/admin/forms/edit/{id}(id=${form.id})}" class="btn btn-sm btn-edit">Edit</a>
+                        <a th:href="@{/admin/forms/preview/{id}(id=${form.id})}" class="btn btn-sm btn-preview"
+                           target="_blank">Preview</a>
+                        <button th:if="${form.formType == T(com.ginkgooai.core.gatekeeper.enums.FormType).QUESTIONNAIRE}"
+                                type="button" class="btn btn-sm btn-secondary"
+                                th:attr="data-form-id=${form.id}, data-form-name=${form.name}, data-form-status=${form.status.name()}"
+                                onclick="openShareModal(this.getAttribute('data-form-id'), this.getAttribute('data-form-name'), this.getAttribute('data-form-status'))">
+                            Share
+                        </button>
+                        <a th:if="${form.formType == T(com.ginkgooai.core.gatekeeper.enums.FormType).QUESTIONNAIRE}"
+                           th:href="@{/admin/questionnaires/{formId}/results(formId=${form.id})}"
+                           class="btn btn-sm btn-view-results">Results</a>
+                        <button type="button" class="btn btn-sm btn-danger"
+                                th:attr="data-form-id=${form.id}, data-form-name=${form.name}"
+                                onclick="confirmDeleteForm(this.getAttribute('data-form-id'), this.getAttribute('data-form-name'))">
+                            Delete
+                        </button>
+                    </td>
+                    <td class="status-actions-cell">
+                        <form th:action="@{/admin/forms/{id}/status(id=${form.id})}" method="post"
+                              style="display: inline-block;" th:if="${form.status.name() != 'PUBLISHED'}">
+                            <input type="hidden" name="status" value="PUBLISHED"/>
+                            <button type="submit" class="btn btn-sm btn-status-publish">Publish</button>
+                        </form>
+                        <form th:action="@{/admin/forms/{id}/status(id=${form.id})}" method="post"
+                              style="display: inline-block;" th:if="${form.status.name() != 'ARCHIVED'}">
+                            <input type="hidden" name="status" value="ARCHIVED"/>
+                            <button type="submit" class="btn btn-sm btn-status-archive">Archive</button>
+                        </form>
+                        <form th:action="@{/admin/forms/{id}/status(id=${form.id})}" method="post"
+                              style="display: inline-block;" th:if="${form.status.name() != 'DRAFT'}">
+                            <input type="hidden" name="status" value="DRAFT"/>
+                            <button type="submit" class="btn btn-sm btn-status-draft">To Draft</button>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Pagination -->
+    <div th:if="${formPage.totalPages > 0}" class="pagination-container">
+        <div class="pagination-info">
+            Showing <b th:text="${formPage.number * formPage.size + 1}"></b>
+            to <b th:text="${formPage.number * formPage.size + formPage.numberOfElements}"></b>
+            of <b th:text="${formPage.totalElements}"></b> results
+        </div>
+        <div class="pagination-nav" th:if="${formPage.totalPages > 1}">
+            <a th:href="@{/admin/forms(page=${formPage.number-1}, size=${formPage.size}, name=${currentName}, status=${currentStatus})}"
+               class="btn" th:classappend="${!formPage.hasPrevious() ? 'disabled' : ''}"
+               th:disabled="${!formPage.hasPrevious()}">
+                &laquo; Previous
+            </a>
+            <!-- Numbered pages could be added here if desired -->
+            <a th:href="@{/admin/forms(page=${formPage.number+1}, size=${formPage.size}, name=${currentName}, status=${currentStatus})}"
+               class="btn" th:classappend="${!formPage.hasNext() ? 'disabled' : ''}"
+               th:disabled="${!formPage.hasNext()}">
+                Next &raquo;
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Hidden form for delete action -->
+<form id="deleteForm" method="post" style="display: none;">
+    <!-- CSRF token if Spring Security is used -->
+    <input type="hidden" th:name="${_csrf?.parameterName}" th:value="${_csrf?.token}"/>
+</form>
+
+<!-- Share Modal (styles updated inline with new theme) -->
+<div id="shareModal" class="share-modal" style="display: none;">
+    <div class="share-modal-content">
+        <span class="share-close-btn" onclick="closeShareModal()">&times;</span>
+        <h3 id="shareModalTitle">Share Questionnaire</h3>
+        <div class="share-modal-body">
+            <p><strong>Shareable Link:</strong></p>
+            <div class="share-link-container">
+                <input type="text" id="shareableLink" readonly/>
+                <button id="copyLinkBtn" class="btn btn-primary btn-copy-link" onclick="copyShareLink()">Copy Link
+                </button>
+            </div>
+
+            <div id="qrCodeContainer" style="margin-top: var(--spacing-lg); text-align: center;">
+                <p><strong>QR Code:</strong></p>
+                <div id="qrCodeImage"
+                     style="margin: var(--spacing-sm) auto; border: 1px solid var(--border-color-light); width: 180px; height: 180px; display:flex; align-items:center; justify-content:center; background-color: var(--bg-hover-light); border-radius: var(--border-radius-md);">
+                    <!-- QR will be generated here by JS -->
+                    <span style="font-size: var(--font-size-xs); color: var(--text-tertiary);">Generating QR...</span>
+                </div>
+                <button id="downloadQrBtn" class="btn btn-secondary" onclick="downloadQrCode()"
+                        style="margin-top:var(--spacing-sm); display:none;">Download QR
+                </button>
+            </div>
+
+            <div id="shareStatusWarning" class="flash-message" style="display:none; margin-top:var(--spacing-md);">
+                <!-- Warning message will be populated by JS -->
+            </div>
+            <p style="margin-top: var(--spacing-md); font-size: var(--font-size-sm); color: var(--text-tertiary);">
+                This link provides direct access to the questionnaire. Ensure the form status is 'Published'.
+            </p>
+        </div>
+    </div>
+</div>
+
+<script>
+  function confirmDeleteForm(id, name) { // Renamed from confirmDelete to be more specific
+    if (confirm(`Are you sure you want to delete the form definition "${name}" (ID: ${id})? This action cannot be undone.`)) {
+      const deleteForm = document.getElementById('deleteForm');
+      deleteForm.action = `${window.location.pathname}/delete/${id}`; // Use current base path
+      // Add CSRF token if present in the page and not automatically handled by Thymeleaf form
+      const csrfTokenInput = document.querySelector('input[name="_csrf"]');
+      if (csrfTokenInput && !deleteForm.querySelector('input[name="_csrf"]')) {
+        const hiddenCsrf = document.createElement('input');
+        hiddenCsrf.type = 'hidden';
+        hiddenCsrf.name = csrfTokenInput.name;
+        hiddenCsrf.value = csrfTokenInput.value;
+        deleteForm.appendChild(hiddenCsrf);
+      }
+      deleteForm.submit();
+    }
+  }
+
+  // Share Modal Functions
+  const shareModal = document.getElementById('shareModal');
+  const shareModalTitle = document.getElementById('shareModalTitle');
+  const shareableLinkInput = document.getElementById('shareableLink');
+  const copyLinkBtn = document.getElementById('copyLinkBtn');
+  const qrCodeImageDiv = document.getElementById('qrCodeImage');
+  const downloadQrBtn = document.getElementById('downloadQrBtn');
+  const shareStatusWarningDiv = document.getElementById('shareStatusWarning');
+  let currentQrCodeInstance = null;
+
+  function openShareModal(formId, formName, formStatus) { // Added formStatus
+    shareModalTitle.textContent = `Share: "${formName}"`;
+
+    const baseUrl = window.location.origin;
+    // Link to dynamic_form_renderer for filling (assumed to be at /questionnaires/fill?formId=)
+    // This should ideally point to a public-facing fill page, not admin preview
+    const fillUrl = `${baseUrl}/questionnaires/fill?formId=${formId}`;
+    shareableLinkInput.value = fillUrl;
+
+    qrCodeImageDiv.innerHTML = '<span style="font-size: var(--font-size-xs); color: var(--text-tertiary);">Generating QR...</span>';
+    downloadQrBtn.style.display = 'none';
+    currentQrCodeInstance = null;
+
+    // QR Code Generation (using qrcode.js - make sure it's included in your project)
+    if (typeof QRCode !== 'undefined') {
+      qrCodeImageDiv.innerHTML = ''; // Clear placeholder
+      currentQrCodeInstance = new QRCode(qrCodeImageDiv, {
+        text: fillUrl,
+        width: 160, // Adjusted size
+        height: 160,
+        colorDark: "#101828", // var(--text-primary)
+        colorLight: "#FFFFFF", // var(--bg-card)
+        correctLevel: QRCode.CorrectLevel.H
+      });
+      downloadQrBtn.style.display = 'inline-block';
+    } else {
+      qrCodeImageDiv.innerHTML = '<span style="font-size: var(--font-size-xs); color: var(--text-tertiary);">(QR Code library not loaded)</span>';
+    }
+
+    // Status warning
+    shareStatusWarningDiv.style.display = 'none';
+    shareStatusWarningDiv.className = 'flash-message'; // Reset classes
+    if (formStatus && formStatus.toUpperCase() === 'DRAFT') {
+      shareStatusWarningDiv.textContent = 'Warning: This form is a DRAFT. It may not be accessible until published.';
+      shareStatusWarningDiv.classList.add('warning'); // Use warning style
+      shareStatusWarningDiv.style.display = 'flex';
+    } else if (formStatus && formStatus.toUpperCase() === 'ARCHIVED') {
+      shareStatusWarningDiv.textContent = 'Warning: This form is ARCHIVED and will not be accessible.';
+      shareStatusWarningDiv.classList.add('error'); // Use error style for archived
+      shareStatusWarningDiv.style.display = 'flex';
+    }
+
+
+    copyLinkBtn.textContent = 'Copy Link';
+    shareModal.style.display = 'flex';
+  }
+
+  function closeShareModal() {
+    shareModal.style.display = 'none';
+  }
+
+  function copyShareLink() {
+    shareableLinkInput.select();
+    shareableLinkInput.setSelectionRange(0, 99999);
+    try {
+      navigator.clipboard.writeText(shareableLinkInput.value).then(() => {
+        copyLinkBtn.textContent = 'Copied!';
+      }).catch(err => {
+        console.error('Failed to copy with navigator.clipboard: ', err);
+        // Fallback for older browsers
+        document.execCommand('copy');
+        copyLinkBtn.textContent = 'Copied! (Fallback)';
+      });
+    } catch (err) {
+      console.error('Failed to copy: ', err);
+      copyLinkBtn.textContent = 'Failed to Copy';
+    }
+    setTimeout(() => {
+      if (copyLinkBtn.textContent.startsWith('Copied')) {
+        copyLinkBtn.textContent = 'Copy Link';
+      }
+    }, 2500);
+  }
+
+  function downloadQrCode() {
+    if (currentQrCodeInstance && qrCodeImageDiv.querySelector('canvas')) {
+      const canvas = qrCodeImageDiv.querySelector('canvas');
+      const imageURL = canvas.toDataURL('image/png').replace('image/png', 'image/octet-stream');
+      let downloadLink = document.createElement('a');
+      downloadLink.href = imageURL;
+      downloadLink.download = `qrcode-${shareModalTitle.textContent.replace(/Share: |"/g, '').replace(/[^a-z0-9]/gi, '_').toLowerCase()}.png`;
+      document.body.appendChild(downloadLink);
+      downloadLink.click();
+      document.body.removeChild(downloadLink);
+    } else if (qrCodeImageDiv.querySelector('img')) { // Fallback if QR is an img tag from library
+      const imgSrc = qrCodeImageDiv.querySelector('img').src;
+      let downloadLink = document.createElement('a');
+      downloadLink.href = imgSrc;
+      downloadLink.download = `qrcode-${shareModalTitle.textContent.replace(/Share: |"/g, '').replace(/[^a-z0-9]/gi, '_').toLowerCase()}.png`;
+      document.body.appendChild(downloadLink);
+      downloadLink.click();
+      document.body.removeChild(downloadLink);
+    } else {
+      alert('QR code image not available for download.');
+    }
+  }
+
+  window.addEventListener('click', function (event) {
+    if (event.target === shareModal) {
+      closeShareModal();
+    }
+  });
+
+  // Make sure to include a QRCode generation library like qrcode.js for the QR code functionality.
+  // Example: <script src="https://cdn.rawgit.com/davidshimjs/qrcodejs/gh-pages/qrcode.min.js"></script>
+// Add this to your
+<head> or before the closing
+</body>
+tag if you use a library.
+</script>
+
+</body>
+</html> 
