@@ -1,22 +1,18 @@
 package com.ginkgooai.core.gatekeeper.service.impl;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.ginkgooai.core.gatekeeper.domain.*;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ginkgooai.core.gatekeeper.domain.FieldDefinition;
+import com.ginkgooai.core.gatekeeper.domain.FormDefinition;
+import com.ginkgooai.core.gatekeeper.domain.SectionDefinition;
+import com.ginkgooai.core.gatekeeper.domain.ValidationRule;
 import com.ginkgooai.core.gatekeeper.dto.FormDefinitionDTO;
-// Import new request DTOs
-import com.ginkgooai.core.gatekeeper.dto.request.CreateFieldDefinitionRequest;
-import com.ginkgooai.core.gatekeeper.dto.request.CreateFormDefinitionRequest;
-import com.ginkgooai.core.gatekeeper.dto.request.CreateSectionDefinitionRequest;
-import com.ginkgooai.core.gatekeeper.dto.request.CreateValidationRuleRequest;
 import com.ginkgooai.core.gatekeeper.dto.UpdateFormDefinitionRequest;
-import com.ginkgooai.core.gatekeeper.dto.request.UpdateSectionDefinitionRequest;
-import com.ginkgooai.core.gatekeeper.dto.request.UpdateFieldDefinitionRequest;
-import com.ginkgooai.core.gatekeeper.dto.request.UpdateValidationRuleRequest;
+import com.ginkgooai.core.gatekeeper.dto.request.*;
 import com.ginkgooai.core.gatekeeper.exception.ResourceNotFoundException;
 import com.ginkgooai.core.gatekeeper.repository.FormDefinitionRepository;
 import com.ginkgooai.core.gatekeeper.service.FormDefinitionService;
+import jakarta.persistence.criteria.Predicate;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -27,13 +23,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import jakarta.persistence.criteria.Predicate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
-import java.util.HashMap;
 
 @Service
 @Slf4j
@@ -61,6 +52,7 @@ public class FormDefinitionServiceImpl implements FormDefinitionService {
 
 		FormDefinition newFormDef = new FormDefinition();
 		newFormDef.setName(request.getName());
+		newFormDef.setFormType(request.getFormType());
 		newFormDef.setVersion(StringUtils.hasText(request.getVersion()) ? request.getVersion() : "1.0.0");
 		newFormDef.setDescription(request.getDescription());
 		newFormDef.setTargetAudience(request.getTargetAudience());

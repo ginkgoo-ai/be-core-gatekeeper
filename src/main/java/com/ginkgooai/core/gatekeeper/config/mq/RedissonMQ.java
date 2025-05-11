@@ -15,29 +15,29 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class RedissonMQ implements QueueInterface {
 
-    private final RedissonClient redissonClient;
+	private final RedissonClient redissonClient;
 
-    @Override
-    public <T extends QueueMessage> void send(String queueName, T message) {
-        RQueue<T> queue = redissonClient.getQueue(queueName);
-        message.setMsgId(UUID.randomUUID().toString());
-        message.setTimestamp(System.currentTimeMillis());
-        queue.offer(message);
-    }
+	@Override
+	public <T extends QueueMessage> void send(String queueName, T message) {
+		RQueue<T> queue = redissonClient.getQueue(queueName);
+		message.setMsgId(UUID.randomUUID().toString());
+		message.setTimestamp(System.currentTimeMillis());
+		queue.offer(message);
+	}
 
-    @Override
-    public void subscribe(String queueName, MessageListener listener) {
-    }
+	@Override
+	public void subscribe(String queueName, MessageListener listener) {
+	}
 
-    @Override
-    public void shutdown() {
-        redissonClient.shutdown();
-    }
+	@Override
+	public void shutdown() {
+		redissonClient.shutdown();
+	}
 
-    @Override
-    public <T extends QueueMessage> List<T> getMessages(String queueName, int batchSize, Class<T> clazz) {
-        RQueue<T> queue = redissonClient.getQueue(queueName);
-        return queue.poll(batchSize);
-    }
+	@Override
+	public <T extends QueueMessage> List<T> getMessages(String queueName, int batchSize, Class<T> clazz) {
+		RQueue<T> queue = redissonClient.getQueue(queueName);
+		return queue.poll(batchSize);
+	}
 
 }

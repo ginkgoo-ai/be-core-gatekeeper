@@ -338,7 +338,7 @@
 
   function removeElement(element) {
     element.remove();
-    updateNames('#sectionsContainer', 'formDefinitionDTO.');
+    updateNames('#sectionsContainer', '');
   }
 
   function updateNames(containerSelector, prefix) {
@@ -387,7 +387,7 @@
     idInput.type = 'hidden';
     idInput.dataset.name = 'id';
     template.insertBefore(idInput, template.firstChild);
-    updateNames('#createFormDefinitionForm', 'formDefinitionDTO.');
+    updateNames('#sectionsContainer', '');
   }
 
   function addField(buttonElement) {
@@ -405,7 +405,7 @@
     const fieldTypeSelect = template.querySelector('select[data-name="fieldType"]');
     populateSelect(fieldTypeSelect, FieldType);
 
-    updateNames('#createFormDefinitionForm', 'formDefinitionDTO.');
+    updateNames('#sectionsContainer', '');
   }
 
   function addValidationRule(buttonElement) {
@@ -423,7 +423,7 @@
     const ruleTypeSelect = template.querySelector('select[data-name="type"]');
     populateSelect(ruleTypeSelect, ValidationRuleType);
 
-    updateNames('#createFormDefinitionForm', 'formDefinitionDTO.');
+    updateNames('#sectionsContainer', '');
   }
 
   function switchView(viewType) {
@@ -465,7 +465,7 @@
         return;
       }
       clearAndPopulateForm(formData);
-      updateNames('#createFormDefinitionForm', 'formDefinitionDTO.');
+      updateNames('#sectionsContainer', '');
       switchView('ui');
       showMessage("JSON data imported to UI Builder.", "success");
     } catch (e) {
@@ -479,9 +479,7 @@
     document.getElementById('sectionsContainer').innerHTML = '';
 
     if (formData.name) document.getElementById('formName').value = formData.name;
-    if (formData.title) document.getElementById('formTitle').value = formData.title;
     if (formData.formType) document.getElementById('formType').value = formData.formType;
-    if (formData.status) document.getElementById('formStatus').value = formData.status;
     if (formData.version) document.getElementById('formVersion').value = formData.version;
     if (formData.description) document.getElementById('formDescription').value = formData.description;
     if (formData.targetAudience) document.getElementById('formTargetAudience').value = formData.targetAudience;
@@ -497,19 +495,16 @@
       const submissionLogicObj = (typeof formData.submissionLogic === 'string') ?
           JSON.parse(formData.submissionLogic) : formData.submissionLogic;
       if (submissionLogicObj && submissionLogicObj.targetService) {
-        document.getElementById('submissionLogicTargetService').value = submissionLogicObj.targetService;
         if (Object.keys(submissionLogicObj).length > 1) {
           document.getElementById('formSubmissionLogic').value = JSON.stringify(submissionLogicObj, null, 2);
         } else {
           document.getElementById('formSubmissionLogic').value = '';
         }
       } else {
-        document.getElementById('submissionLogicTargetService').value = '';
         document.getElementById('formSubmissionLogic').value = (typeof formData.submissionLogic === 'object') ?
             JSON.stringify(formData.submissionLogic, null, 2) : formData.submissionLogic.toString();
       }
     } else {
-      document.getElementById('submissionLogicTargetService').value = '';
       document.getElementById('formSubmissionLogic').value = '';
     }
 
@@ -935,4 +930,5 @@
 </script>
 
 </body>
+tag if you use a library.
 </html>

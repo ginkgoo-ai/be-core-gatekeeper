@@ -22,70 +22,71 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.TimeZone;
 
-
 @Configuration
 public class JacksonConfig {
 
-    private static final String LOCAL_DATE_TIME_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS";
+	private static final String LOCAL_DATE_TIME_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS";
 
-    private static final DateTimeFormatter ISO_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS");
+	private static final DateTimeFormatter ISO_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS");
 
-    public static class CustomLocalDateTimeSerializer extends StdSerializer<LocalDateTime> {
+	public static class CustomLocalDateTimeSerializer extends StdSerializer<LocalDateTime> {
 
-        public CustomLocalDateTimeSerializer() {
-            super(LocalDateTime.class);
-        }
+		public CustomLocalDateTimeSerializer() {
+			super(LocalDateTime.class);
+		}
 
-        @Override
-        public void serialize(LocalDateTime value, JsonGenerator gen, SerializerProvider provider)
-            throws IOException {
-            if (value == null) {
-                gen.writeNull();
-            } else {
-                gen.writeString(value.format(ISO_FORMATTER) + "Z");
-            }
-        }
-    }
+		@Override
+		public void serialize(LocalDateTime value, JsonGenerator gen, SerializerProvider provider) throws IOException {
+			if (value == null) {
+				gen.writeNull();
+			}
+			else {
+				gen.writeString(value.format(ISO_FORMATTER) + "Z");
+			}
+		}
 
-    @Bean
-    @Primary
-    public ObjectMapper objectMapper() {
-        ObjectMapper objectMapper = new ObjectMapper();
-        JavaTimeModule javaTimeModule = new JavaTimeModule();
+	}
 
-        objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
-        objectMapper.enable(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT);
-        objectMapper.disable(com.fasterxml.jackson.databind.MapperFeature.INFER_CREATOR_FROM_CONSTRUCTOR_PROPERTIES);
+	@Bean
+	@Primary
+	public ObjectMapper objectMapper() {
+		ObjectMapper objectMapper = new ObjectMapper();
+		JavaTimeModule javaTimeModule = new JavaTimeModule();
 
-        objectMapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
-        objectMapper.setVisibility(PropertyAccessor.CREATOR, JsonAutoDetect.Visibility.ANY);
+		objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+		objectMapper.enable(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT);
+		objectMapper.disable(com.fasterxml.jackson.databind.MapperFeature.INFER_CREATOR_FROM_CONSTRUCTOR_PROPERTIES);
 
-        objectMapper.registerModule(new ParameterNamesModule());
-        objectMapper.registerModule(new Jdk8Module());
+		objectMapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
+		objectMapper.setVisibility(PropertyAccessor.CREATOR, JsonAutoDetect.Visibility.ANY);
 
-        DateTimeFormatter deserializerFormatter = DateTimeFormatter.ofPattern(LOCAL_DATE_TIME_FORMAT);
-        javaTimeModule.addDeserializer(LocalDateTime.class, new LocalDateTimeDeserializer(deserializerFormatter));
+		objectMapper.registerModule(new ParameterNamesModule());
+		objectMapper.registerModule(new Jdk8Module());
 
-        javaTimeModule.addSerializer(LocalDateTime.class, new CustomLocalDateTimeSerializer());
+		DateTimeFormatter deserializerFormatter = DateTimeFormatter.ofPattern(LOCAL_DATE_TIME_FORMAT);
+		javaTimeModule.addDeserializer(LocalDateTime.class, new LocalDateTimeDeserializer(deserializerFormatter));
 
-        objectMapper.registerModule(javaTimeModule);
+		javaTimeModule.addSerializer(LocalDateTime.class, new CustomLocalDateTimeSerializer());
 
-        objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-        objectMapper.setTimeZone(TimeZone.getTimeZone("UTC"));
+		objectMapper.registerModule(javaTimeModule);
 
-        return objectMapper;
-    }
+		objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+		objectMapper.setTimeZone(TimeZone.getTimeZone("UTC"));
 
-    @Bean
-    public Jackson2ObjectMapperBuilderCustomizer jsonCustomizer() {
-        return builder -> {
-            builder.featuresToDisable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
-            builder.featuresToEnable(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT);
+		return objectMapper;
+	}
 
-            builder.serializers(new CustomLocalDateTimeSerializer());
+	@Bean
+	public Jackson2ObjectMapperBuilderCustomizer jsonCustomizer() {
+		return builder -> {
+			builder.featuresToDisable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+			builder.featuresToEnable(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT);
 
-            DateTimeFormatter deserializerFormatter = DateTimeFormatter.ofPattern(LOCAL_DATE_TIME_FORMAT);
-            builder.deserializers(new LocalDateTimeDeserializer(deserializerFormatter));
-        };
-    }
+			builder.serializers(new CustomLocalDateTimeSerializer());
+
+			DateTimeFormatter deserializerFormatter = DateTimeFormatter.ofPattern(LOCAL_DATE_TIME_FORMAT);
+			builder.deserializers(new LocalDateTimeDeserializer(deserializerFormatter));
+		};
+	}
+
 }

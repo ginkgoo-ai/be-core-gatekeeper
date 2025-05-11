@@ -18,32 +18,33 @@ import java.net.URI;
 
 @Component
 public class ProblemDetailsAuthenticationEntryPoint implements AuthenticationEntryPoint, AccessDeniedHandler {
-    @Value("${AUTH_CLIENT}")
-    private String authClient;
 
-    @Override
-    public void commence(HttpServletRequest request, HttpServletResponse response,
-                         AuthenticationException authException) throws IOException {
-        handleException(request, response, authException, HttpStatus.UNAUTHORIZED, "unauthorized");
-    }
+	@Value("${AUTH_CLIENT}")
+	private String authClient;
 
-    @Override
-    public void handle(HttpServletRequest request, HttpServletResponse response,
-                       AccessDeniedException accessDeniedException) throws IOException {
-        handleException(request, response, accessDeniedException, HttpStatus.FORBIDDEN, "forbidden");
-    }
+	@Override
+	public void commence(HttpServletRequest request, HttpServletResponse response,
+			AuthenticationException authException) throws IOException {
+		handleException(request, response, authException, HttpStatus.UNAUTHORIZED, "unauthorized");
+	}
 
-    private void handleException(HttpServletRequest request, HttpServletResponse response,
-            Exception exception, HttpStatus status, String errorType) throws IOException {
-        ProblemDetail problemDetail = ProblemDetail
-                .forStatusAndDetail(status, exception.getMessage());
-        problemDetail.setTitle(status.getReasonPhrase());
-        problemDetail.setType(URI.create(authClient + "/errors/" + errorType));
-        problemDetail.setInstance(URI.create(request.getRequestURI()));
+	@Override
+	public void handle(HttpServletRequest request, HttpServletResponse response,
+			AccessDeniedException accessDeniedException) throws IOException {
+		handleException(request, response, accessDeniedException, HttpStatus.FORBIDDEN, "forbidden");
+	}
 
-        response.setStatus(status.value());
-        response.setContentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE);
+	private void handleException(HttpServletRequest request, HttpServletResponse response, Exception exception,
+			HttpStatus status, String errorType) throws IOException {
+		ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(status, exception.getMessage());
+		problemDetail.setTitle(status.getReasonPhrase());
+		problemDetail.setType(URI.create(authClient + "/errors/" + errorType));
+		problemDetail.setInstance(URI.create(request.getRequestURI()));
 
-        new ObjectMapper().writeValue(response.getOutputStream(), problemDetail);
-    }
+		response.setStatus(status.value());
+		response.setContentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE);
+
+		new ObjectMapper().writeValue(response.getOutputStream(), problemDetail);
+	}
+
 }

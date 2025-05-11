@@ -2,22 +2,16 @@ package com.ginkgooai.core.gatekeeper.controller.admin;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.ginkgooai.core.gatekeeper.domain.FormDefinition;
+import com.ginkgooai.core.gatekeeper.dto.*;
 import com.ginkgooai.core.gatekeeper.dto.request.CreateFormDefinitionRequest;
-import com.ginkgooai.core.gatekeeper.dto.UpdateFormDefinitionRequest;
-import com.ginkgooai.core.gatekeeper.dto.FormDefinitionDTO;
-import com.ginkgooai.core.gatekeeper.dto.SectionDefinitionDTO;
-import com.ginkgooai.core.gatekeeper.dto.FieldDefinitionDTO;
-import com.ginkgooai.core.gatekeeper.dto.ValidationRuleDTO;
-import com.ginkgooai.core.gatekeeper.dto.request.UpdateSectionDefinitionRequest;
 import com.ginkgooai.core.gatekeeper.dto.request.UpdateFieldDefinitionRequest;
+import com.ginkgooai.core.gatekeeper.dto.request.UpdateSectionDefinitionRequest;
 import com.ginkgooai.core.gatekeeper.dto.request.UpdateValidationRuleRequest;
 import com.ginkgooai.core.gatekeeper.exception.ResourceNotFoundException;
 import com.ginkgooai.core.gatekeeper.service.FormDefinitionService;
 import com.ginkgooai.core.gatekeeper.service.FormImageProcessingService;
 import com.ginkgooai.core.gatekeeper.util.FormRenderingHelper;
-import com.ginkgooai.core.gatekeeper.util.JsonValidationUtil;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,22 +26,15 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.io.IOException;
-import java.util.Map;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.ArrayList;
+import java.util.Map;
 
 @Controller
 @RequestMapping("/admin/forms")
@@ -80,10 +67,7 @@ public class FormAdminController {
 		log.debug("Admin request to list forms. Name: {}, Status: {}, Pageable: {}", name, status, pageable);
 		Page<FormDefinitionDTO> formPage = formDefinitionService.findFormDefinitions(pageable, name, status);
 		model.addAttribute("formPage", formPage);
-		model.addAttribute("formStatuses", FormDefinition.FormStatus.values()); // For
-																				// status
-																				// filter
-																				// dropdown
+		model.addAttribute("formStatuses", FormDefinition.FormStatus.values());
 		model.addAttribute("currentName", name);
 		model.addAttribute("currentStatus", status);
 		return "admin/forms-list-buffer"; // Thymeleaf template name
@@ -94,7 +78,6 @@ public class FormAdminController {
 		log.debug("Admin request to show create new form page.");
 		model.addAttribute("createRequest", new CreateFormDefinitionRequest());
 
-		// 添加枚举类型到模型中
 		addEnumTypesToModel(model);
 
 		return "admin/form-create-buffer"; // Thymeleaf template name
@@ -109,18 +92,15 @@ public class FormAdminController {
 		Map<String, Object> response = new HashMap<>();
 
 		try {
-			// 尝试将JSON解析为CreateFormDefinitionRequest对象
 			CreateFormDefinitionRequest formRequest = objectMapper.readValue(jsonContent,
 					CreateFormDefinitionRequest.class);
 
-			// 验证基本结构是否符合要求
 			boolean isValid = formRequest.getName() != null && !formRequest.getName().isEmpty();
 
 			if (isValid) {
 				response.put("valid", true);
 				response.put("message", "JSON格式有效");
 
-				// 提供表单的基本信息作为预览
 				Map<String, Object> preview = new HashMap<>();
 				preview.put("name", formRequest.getName());
 				preview.put("sectionsCount", formRequest.getSections() != null ? formRequest.getSections().size() : 0);
@@ -155,160 +135,60 @@ public class FormAdminController {
 	}
 
 	@GetMapping("/preview/{formId}") // Or just {formId}/preview
-	public String previewForm(@PathVariable String formId, Model model) {
+	public String previewForm(@PathVariable String formId, Model model, RedirectAttributes redirectAttributes) {
 		log.debug("Admin request to preview form with ID: {}", formId);
 		try {
 			FormDefinitionDTO formDefinition = formDefinitionService.findFormDefinitionById(formId)
 				.orElseThrow(() -> new ResourceNotFoundException("FormDefinition", "id", formId));
 			addEnumTypesToModel(model);
-			model.addAttribute("formId", formId); // Pass for JS (though it already gets
-			model.addAttribute("viewMode", "preview"); // Explicitly set mode
+			model.addAttribute("formId", formId);
+			model.addAttribute("viewMode", "preview");
 
 			return "questionnaire/dynamic_form_renderer";
 		}
 		catch (ResourceNotFoundException e) {
-			log.warn("Form definition not found for preview with ID: {}", formId);
-			// Optionally, redirect to an error page or the list page with an error
-			// message
-			model.addAttribute("errorMessage", "Form definition with ID " + formId + " not found.");
-			return "admin/forms-list-buffer"; // Or a dedicated error view
+			log.warn("Form definition not found for preview with ID: {}. Redirecting.", formId, e);
+			redirectAttributes.addFlashAttribute("errorMessage", "Form definition with ID " + formId + " not found.");
+			return "redirect:/admin/forms";
 		}
 	}
 
 	@GetMapping("/edit/{id}")
-	public String showEditForm(@PathVariable String id, Model model) {
+	public String showEditForm(@PathVariable String id, Model model, RedirectAttributes redirectAttributes) {
 		log.debug("Admin request to edit form with ID: {}", id);
 		try {
-			FormDefinitionDTO formDefinition = formDefinitionService.findFormDefinitionById(id)
-				.orElseThrow(() -> new ResourceNotFoundException("FormDefinition", "id", id));
-
-			// 创建更新请求对象
-			UpdateFormDefinitionRequest updateRequest = new UpdateFormDefinitionRequest();
-
-			// 安全地访问字段
-			if (formDefinition.getDescription() != null) {
-				updateRequest.setDescription(formDefinition.getDescription());
-			}
-
-			if (formDefinition.getStatus() != null) {
-				updateRequest.setStatus(formDefinition.getStatus());
-			}
-
-			// 设置targetAudience
-			if (formDefinition.getTargetAudience() != null) {
-				updateRequest.setTargetAudience(formDefinition.getTargetAudience());
-			}
-
-			// 设置initialLogic
-			if (formDefinition.getInitialLogic() != null) {
-				updateRequest.setInitialLogic(formDefinition.getInitialLogic());
-			}
-
-			// 设置submissionLogic
-			if (formDefinition.getSubmissionLogic() != null) {
-				updateRequest.setSubmissionLogic(formDefinition.getSubmissionLogic());
-			}
-
-			// 设置sections
-			if (formDefinition.getSections() != null && !formDefinition.getSections().isEmpty()) {
-				List<UpdateSectionDefinitionRequest> sectionRequests = new ArrayList<>();
-
-				for (SectionDefinitionDTO sectionDTO : formDefinition.getSections()) {
-					UpdateSectionDefinitionRequest sectionRequest = new UpdateSectionDefinitionRequest();
-					sectionRequest.setId(sectionDTO.getId());
-					sectionRequest.setTitle(sectionDTO.getTitle());
-					sectionRequest.setOrder(sectionDTO.getOrder());
-					sectionRequest.setCondition(sectionDTO.getCondition());
-
-					// 设置fields
-					if (sectionDTO.getFields() != null && !sectionDTO.getFields().isEmpty()) {
-						List<UpdateFieldDefinitionRequest> fieldRequests = new ArrayList<>();
-
-						for (FieldDefinitionDTO fieldDTO : sectionDTO.getFields()) {
-							UpdateFieldDefinitionRequest fieldRequest = new UpdateFieldDefinitionRequest();
-							fieldRequest.setId(fieldDTO.getId());
-							fieldRequest.setName(fieldDTO.getName());
-							fieldRequest.setLabel(fieldDTO.getLabel());
-							fieldRequest.setFieldType(fieldDTO.getFieldType());
-							fieldRequest.setPlaceholder(fieldDTO.getPlaceholder());
-							fieldRequest.setDefaultValue(fieldDTO.getDefaultValue());
-							fieldRequest.setOptionsSourceType(fieldDTO.getOptionsSourceType());
-							fieldRequest.setStaticOptions(fieldDTO.getStaticOptions());
-							fieldRequest.setApiEndpoint(fieldDTO.getApiEndpoint());
-							fieldRequest.setUiProperties(fieldDTO.getUiProperties());
-							fieldRequest.setCondition(fieldDTO.getCondition());
-							fieldRequest.setDependencies(fieldDTO.getDependencies());
-							fieldRequest.setOrder(fieldDTO.getOrder());
-
-							// 设置validations
-							if (fieldDTO.getValidations() != null && !fieldDTO.getValidations().isEmpty()) {
-								List<UpdateValidationRuleRequest> ruleRequests = new ArrayList<>();
-
-								for (ValidationRuleDTO ruleDTO : fieldDTO.getValidations()) {
-									UpdateValidationRuleRequest ruleRequest = new UpdateValidationRuleRequest();
-									ruleRequest.setId(ruleDTO.getId());
-									ruleRequest.setType(ruleDTO.getType());
-									ruleRequest.setValue(ruleDTO.getValue());
-									ruleRequest.setErrorMessage(ruleDTO.getErrorMessage());
-									ruleRequest.setCustomFunction(ruleDTO.getCustomFunction());
-									ruleRequests.add(ruleRequest);
-								}
-
-								fieldRequest.setValidations(ruleRequests);
-							}
-
-							fieldRequests.add(fieldRequest);
-						}
-
-						sectionRequest.setFields(fieldRequests);
-					}
-
-					sectionRequests.add(sectionRequest);
-				}
-
-				updateRequest.setSections(sectionRequests);
-			}
-
-			model.addAttribute("formDefinition", formDefinition);
-			model.addAttribute("updateRequest", updateRequest);
-			model.addAttribute("formStatuses", FormDefinition.FormStatus.values());
-
-			// 添加枚举类型到model中，避免在Thymeleaf模板中使用T()引用
-			addEnumTypesToModel(model);
-
-			return "admin/form-edit-buffer";
+			return populateFormEditModel(id, model, null);
 		}
 		catch (ResourceNotFoundException e) {
-			log.warn("Form definition not found for editing with ID: {}", id);
-			model.addAttribute("errorMessage", "Form definition with ID " + id + " not found.");
-			return "redirect:/admin/forms?error=notfound";
+			log.warn("Form definition not found for editing with ID: {}. Redirecting.", id, e);
+			redirectAttributes.addFlashAttribute("errorMessage", "Form definition with ID " + id + " not found.");
+			return "redirect:/admin/forms";
 		}
 	}
 
 	@PostMapping("/edit/{id}")
 	public String updateForm(@PathVariable String id,
 			@Valid @ModelAttribute("updateRequest") UpdateFormDefinitionRequest request, BindingResult bindingResult,
-			Model model) {
+			Model model, RedirectAttributes redirectAttributes) {
 		log.info("Admin request to update form with ID: {}", id);
 
 		if (bindingResult.hasErrors()) {
 			log.warn("Validation errors when updating form: {}", bindingResult.getAllErrors());
-			// 获取当前表单定义重新显示编辑页面
+			// Populate model for returning to edit page with validation errors
 			try {
-				FormDefinitionDTO formDefinition = formDefinitionService.findFormDefinitionById(id)
-					.orElseThrow(() -> new ResourceNotFoundException("FormDefinition", "id", id));
-				model.addAttribute("formDefinition", formDefinition);
-				model.addAttribute("formStatuses", FormDefinition.FormStatus.values());
-
-				// 添加枚举类型到model中
-				addEnumTypesToModel(model);
-
+				populateFormEditModel(id, model, request); // Pass existing request to
+															// retain user input
+				return "admin/form-edit-buffer"; // Return to edit page with errors
 			}
 			catch (ResourceNotFoundException e) {
-				model.addAttribute("errorMessage", "Form definition with ID " + id + " not found.");
-				return "redirect:/admin/forms?error=notfound";
+				log.warn(
+						"Form definition not found (ID: {}) while trying to show edit page after validation errors. Redirecting.",
+						id, e);
+				// It's unlikely to hit this if the form existed for the initial GET,
+				// but handling defensively.
+				redirectAttributes.addFlashAttribute("errorMessage", "Form definition with ID " + id + " not found.");
+				return "redirect:/admin/forms";
 			}
-			return "admin/form-edit-buffer";
 		}
 
 		try {
@@ -325,22 +205,19 @@ public class FormAdminController {
 			log.error("Error updating form: {}", e.getMessage(), e);
 			model.addAttribute("errorMessage", "Error updating form: " + e.getMessage());
 
-			// 重新获取表单定义重新显示编辑页面
+			// Populate model for returning to edit page after an exception
 			try {
-				FormDefinitionDTO formDefinition = formDefinitionService.findFormDefinitionById(id)
-					.orElseThrow(() -> new ResourceNotFoundException("FormDefinition", "id", id));
-				model.addAttribute("formDefinition", formDefinition);
-				model.addAttribute("formStatuses", FormDefinition.FormStatus.values());
-
-				// 添加枚举类型到model中
-				addEnumTypesToModel(model);
-
+				populateFormEditModel(id, model, request); // Pass existing request
+				return "admin/form-edit-buffer"; // Return to edit page
 			}
-			catch (ResourceNotFoundException ex) {
-				return "redirect:/admin/forms?error=notfound";
+			catch (ResourceNotFoundException rnfe) {
+				log.warn(
+						"Form definition not found (ID: {}) while trying to show edit page after update exception. Redirecting.",
+						id, rnfe);
+				redirectAttributes.addFlashAttribute("errorMessage",
+						"Form definition with ID " + id + " not found. Update failed.");
+				return "redirect:/admin/forms";
 			}
-
-			return "admin/form-edit-buffer";
 		}
 	}
 
@@ -428,7 +305,7 @@ public class FormAdminController {
 	@ResponseBody // Important: This endpoint returns JSON directly
 	public ResponseEntity<?> handleImageImport(@RequestParam("imageFile") MultipartFile imageFile) {
 		if (imageFile.isEmpty()) {
-			return ResponseEntity.badRequest().body("{\"error\": \"Image file is empty\"}");
+			return ResponseEntity.badRequest().body(Map.of("error", "Image file is empty"));
 		}
 
 		try {
@@ -442,18 +319,122 @@ public class FormAdminController {
 		catch (IOException e) {
 			log.error("IO Error processing image: {}", imageFile.getOriginalFilename(), e);
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-				.body("{\"error\": \"IO error processing image: " + e.getMessage() + "\"}");
+				.body(Map.of("error", "IO error processing image: " + e.getMessage()));
 		}
 		catch (Exception e) {
 			log.error("Error processing image with AI: {}", imageFile.getOriginalFilename(), e);
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-				.body("{\"error\": \"Failed to process image with AI: " + e.getMessage() + "\"}");
+				.body(Map.of("error", "Failed to process image with AI: " + e.getMessage()));
 		}
 	}
 
 	/**
-	 * 添加常用枚举类型到Model中，避免在Thymeleaf模板中使用T()引用， 解决"Instantiation of new objects and access
-	 * to static classes or parameters is forbidden in this context"错误
+	 * Populates the model with form definition details for the edit view. This method
+	 * fetches the form definition, sets up the update request object if not provided, and
+	 * adds necessary attributes (form definition, update request, statuses, enum types)
+	 * to the model.
+	 * @param id The ID of the form definition to fetch.
+	 * @param model The Spring MVC model to populate.
+	 * @param existingUpdateRequest An optional existing UpdateFormDefinitionRequest
+	 * (e.g., from a failed submission). If null, a new one will be created based on the
+	 * fetched form definition.
+	 * @return The view name to render ("admin/form-edit-buffer" on success).
+	 * @throws ResourceNotFoundException if the form definition with the given ID is not
+	 * found.
+	 */
+	private String populateFormEditModel(String id, Model model, UpdateFormDefinitionRequest existingUpdateRequest)
+			throws ResourceNotFoundException {
+		FormDefinitionDTO formDefinition = formDefinitionService.findFormDefinitionById(id).orElseThrow(() -> {
+			// Log here as this is the point of origin for this specific failure context
+			log.warn("Form definition not found for ID: {} in populateFormEditModel", id);
+			return new ResourceNotFoundException("FormDefinition", "id", id);
+		});
+
+		UpdateFormDefinitionRequest updateRequest;
+		if (existingUpdateRequest != null) {
+			updateRequest = existingUpdateRequest;
+		}
+		else {
+			updateRequest = new UpdateFormDefinitionRequest();
+			// Populate updateRequest from formDefinition
+			if (formDefinition.getDescription() != null) {
+				updateRequest.setDescription(formDefinition.getDescription());
+			}
+			if (formDefinition.getStatus() != null) {
+				updateRequest.setStatus(formDefinition.getStatus());
+			}
+			if (formDefinition.getTargetAudience() != null) {
+				updateRequest.setTargetAudience(formDefinition.getTargetAudience());
+			}
+			if (formDefinition.getInitialLogic() != null) {
+				updateRequest.setInitialLogic(formDefinition.getInitialLogic());
+			}
+			if (formDefinition.getSubmissionLogic() != null) {
+				updateRequest.setSubmissionLogic(formDefinition.getSubmissionLogic());
+			}
+			if (formDefinition.getSections() != null && !formDefinition.getSections().isEmpty()) {
+				List<UpdateSectionDefinitionRequest> sectionRequests = new ArrayList<>();
+				for (SectionDefinitionDTO sectionDTO : formDefinition.getSections()) {
+					UpdateSectionDefinitionRequest sectionRequest = new UpdateSectionDefinitionRequest();
+					sectionRequest.setId(sectionDTO.getId());
+					sectionRequest.setTitle(sectionDTO.getTitle());
+					sectionRequest.setOrder(sectionDTO.getOrder());
+					sectionRequest.setCondition(sectionDTO.getCondition());
+
+					if (sectionDTO.getFields() != null && !sectionDTO.getFields().isEmpty()) {
+						List<UpdateFieldDefinitionRequest> fieldRequests = new ArrayList<>();
+						for (FieldDefinitionDTO fieldDTO : sectionDTO.getFields()) {
+							UpdateFieldDefinitionRequest fieldRequest = new UpdateFieldDefinitionRequest();
+							fieldRequest.setId(fieldDTO.getId());
+							fieldRequest.setName(fieldDTO.getName());
+							fieldRequest.setLabel(fieldDTO.getLabel());
+							fieldRequest.setFieldType(fieldDTO.getFieldType());
+							fieldRequest.setPlaceholder(fieldDTO.getPlaceholder());
+							fieldRequest.setDefaultValue(fieldDTO.getDefaultValue());
+							fieldRequest.setOptionsSourceType(fieldDTO.getOptionsSourceType());
+							fieldRequest.setStaticOptions(fieldDTO.getStaticOptions());
+							fieldRequest.setApiEndpoint(fieldDTO.getApiEndpoint());
+							fieldRequest.setUiProperties(fieldDTO.getUiProperties());
+							fieldRequest.setCondition(fieldDTO.getCondition());
+							fieldRequest.setDependencies(fieldDTO.getDependencies());
+							fieldRequest.setOrder(fieldDTO.getOrder());
+
+							if (fieldDTO.getValidations() != null && !fieldDTO.getValidations().isEmpty()) {
+								List<UpdateValidationRuleRequest> ruleRequests = new ArrayList<>();
+								for (ValidationRuleDTO ruleDTO : fieldDTO.getValidations()) {
+									UpdateValidationRuleRequest ruleRequest = new UpdateValidationRuleRequest();
+									ruleRequest.setId(ruleDTO.getId());
+									ruleRequest.setType(ruleDTO.getType());
+									ruleRequest.setValue(ruleDTO.getValue());
+									ruleRequest.setErrorMessage(ruleDTO.getErrorMessage());
+									ruleRequest.setCustomFunction(ruleDTO.getCustomFunction());
+									ruleRequests.add(ruleRequest);
+								}
+								fieldRequest.setValidations(ruleRequests);
+							}
+							fieldRequests.add(fieldRequest);
+						}
+						sectionRequest.setFields(fieldRequests);
+					}
+					sectionRequests.add(sectionRequest);
+				}
+				updateRequest.setSections(sectionRequests);
+			}
+		}
+
+		model.addAttribute("formDefinition", formDefinition);
+		model.addAttribute("updateRequest", updateRequest);
+		model.addAttribute("formStatuses", FormDefinition.FormStatus.values());
+		addEnumTypesToModel(model);
+
+		return "admin/form-edit-buffer";
+	}
+
+	/**
+	 * Adds commonly used enum types to the Model. This avoids using T() expressions in
+	 * Thymeleaf templates, addressing potential issues with Spring Security or template
+	 * engine restrictions.
+	 * @param model The Spring MVC model to which enum types will be added.
 	 */
 	private void addEnumTypesToModel(Model model) {
 		model.addAttribute("FieldType", com.ginkgooai.core.gatekeeper.domain.types.FieldType.class);

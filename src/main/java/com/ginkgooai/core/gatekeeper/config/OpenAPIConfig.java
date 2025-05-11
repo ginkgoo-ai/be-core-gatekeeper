@@ -15,28 +15,29 @@ import java.util.List;
 @Configuration
 public class OpenAPIConfig {
 
-    private static final String COOKIE_AUTH_NAME = "cookieAuth";
-    private static final String WORKSPACE_HEADER = "x-workspace-id";
+	private static final String COOKIE_AUTH_NAME = "cookieAuth";
 
-    @Value("${AUTH_CLIENT}")
-    private String gatewayUri;
+	private static final String WORKSPACE_HEADER = "x-workspace-id";
 
-    @Bean
-    public OpenAPI customOpenAPI() {
-        return new OpenAPI()
-                .servers(List.of(new Server().url(gatewayUri + "/api/workspace")))
-                .info(new Info().title("Workspace Service API").version("1.0.0"))
-                .addSecurityItem(new SecurityRequirement().addList(COOKIE_AUTH_NAME).addList(WORKSPACE_HEADER))
-                .components(new Components()
-                        .addSecuritySchemes(COOKIE_AUTH_NAME, new SecurityScheme()
-                                .type(SecurityScheme.Type.APIKEY)
-                                .in(SecurityScheme.In.COOKIE)
-                                .name("SESSION")
-                                .description("Session cookie for authentication"))
-                        .addSecuritySchemes(WORKSPACE_HEADER, new SecurityScheme()
-                                .type(SecurityScheme.Type.APIKEY)
-                                .in(SecurityScheme.In.HEADER)
-                                .name(WORKSPACE_HEADER)
-                                .description("Workspace ID for multi-tenant requests")));
-    }
+	@Value("${AUTH_CLIENT}")
+	private String gatewayUri;
+
+	@Bean
+	public OpenAPI customOpenAPI() {
+		return new OpenAPI().servers(List.of(new Server().url(gatewayUri + "/api/workspace")))
+			.info(new Info().title("Workspace Service API").version("1.0.0"))
+			.addSecurityItem(new SecurityRequirement().addList(COOKIE_AUTH_NAME).addList(WORKSPACE_HEADER))
+			.components(new Components()
+				.addSecuritySchemes(COOKIE_AUTH_NAME,
+						new SecurityScheme().type(SecurityScheme.Type.APIKEY)
+							.in(SecurityScheme.In.COOKIE)
+							.name("SESSION")
+							.description("Session cookie for authentication"))
+				.addSecuritySchemes(WORKSPACE_HEADER,
+						new SecurityScheme().type(SecurityScheme.Type.APIKEY)
+							.in(SecurityScheme.In.HEADER)
+							.name(WORKSPACE_HEADER)
+							.description("Workspace ID for multi-tenant requests")));
+	}
+
 }

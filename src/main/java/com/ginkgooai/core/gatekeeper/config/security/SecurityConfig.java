@@ -21,11 +21,11 @@ import java.util.List;
 @EnableWebSecurity
 public class SecurityConfig {
 
-    @Value("${spring.security.oauth2.resourceserver.jwt.issuer-uri}")
-    private String issuerUri;
+	@Value("${spring.security.oauth2.resourceserver.jwt.issuer-uri}")
+	private String issuerUri;
 
-    @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+	@Bean
+	public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 		http.csrf(csrf -> csrf.disable())
 			.authorizeHttpRequests(authorize -> authorize
 				.requestMatchers("/api/gatekeeper/v3/api-docs/**", "/api/gatekeeper/swagger-ui/**", "/webjars/**",
@@ -35,62 +35,62 @@ public class SecurityConfig {
 				// .anyRequest().authenticated()
 				.anyRequest()
 				.permitAll())
-                .exceptionHandling(exceptionHandling -> exceptionHandling
-                        .authenticationEntryPoint(new ProblemDetailsAuthenticationEntryPoint())
-                        .accessDeniedHandler(new ProblemDetailsAuthenticationEntryPoint()))
-                .oauth2ResourceServer(oauth2 -> oauth2
-				.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter())));
+			.exceptionHandling(exceptionHandling -> exceptionHandling
+				.authenticationEntryPoint(new ProblemDetailsAuthenticationEntryPoint())
+				.accessDeniedHandler(new ProblemDetailsAuthenticationEntryPoint()))
+			.oauth2ResourceServer(
+					oauth2 -> oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter())));
 
-        return http.build();
-    }
+		return http.build();
+	}
 
-    public JwtAuthenticationConverter jwtAuthenticationConverter() {
-        JwtAuthenticationConverter jwtConverter = new JwtAuthenticationConverter();
+	public JwtAuthenticationConverter jwtAuthenticationConverter() {
+		JwtAuthenticationConverter jwtConverter = new JwtAuthenticationConverter();
 
-        jwtConverter.setPrincipalClaimName("email");
-        jwtConverter.setJwtGrantedAuthoritiesConverter(jwt -> {
-            Collection<GrantedAuthority> authorities = new ArrayList<>();
-            List<String> roles = getClaimAsList(jwt, "role");
-            if (roles != null) {
-                for (String role : roles) {
-                    authorities.add(new SimpleGrantedAuthority(role.toUpperCase()));
-                }
-            }
+		jwtConverter.setPrincipalClaimName("email");
+		jwtConverter.setJwtGrantedAuthoritiesConverter(jwt -> {
+			Collection<GrantedAuthority> authorities = new ArrayList<>();
+			List<String> roles = getClaimAsList(jwt, "role");
+			if (roles != null) {
+				for (String role : roles) {
+					authorities.add(new SimpleGrantedAuthority(role.toUpperCase()));
+				}
+			}
 
-            List<String> scopes = getClaimAsList(jwt, "scope");
-            if (scopes != null) {
-                for (String scope : scopes) {
-                    authorities.add(new SimpleGrantedAuthority(scope));
-                }
-            }
+			List<String> scopes = getClaimAsList(jwt, "scope");
+			if (scopes != null) {
+				for (String scope : scopes) {
+					authorities.add(new SimpleGrantedAuthority(scope));
+				}
+			}
 
-            return authorities;
-        });
+			return authorities;
+		});
 
-        return jwtConverter;
-    }
+		return jwtConverter;
+	}
 
-    private List<String> getClaimAsList(Jwt jwt, String claimName) {
-        Object claimValue = jwt.getClaim(claimName);
+	private List<String> getClaimAsList(Jwt jwt, String claimName) {
+		Object claimValue = jwt.getClaim(claimName);
 
-        if (claimValue == null) {
-            return null;
-        }
+		if (claimValue == null) {
+			return null;
+		}
 
-        if (claimValue instanceof List) {
-            return (List<String>) claimValue;
-        }
+		if (claimValue instanceof List) {
+			return (List<String>) claimValue;
+		}
 
-        if (claimValue instanceof String) {
-            return List.of(((String) claimValue).split(" "));
-        }
+		if (claimValue instanceof String) {
+			return List.of(((String) claimValue).split(" "));
+		}
 
-        return null;
-    }
+		return null;
+	}
 
-    @Bean
-    public JwtDecoder jwtDecoder() {
-        return JwtDecoders.fromIssuerLocation(issuerUri);
-    }
+	@Bean
+	public JwtDecoder jwtDecoder() {
+		return JwtDecoders.fromIssuerLocation(issuerUri);
+	}
 
 }

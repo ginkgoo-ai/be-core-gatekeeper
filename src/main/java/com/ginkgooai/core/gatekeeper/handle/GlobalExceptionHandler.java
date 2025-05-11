@@ -11,9 +11,10 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 @Slf4j
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
-    @ExceptionHandler(BaseRuntimeException.class)
-    public ProblemDetail handleBaseException(BaseRuntimeException ex) {
-        log.error("BaseRuntimeException: ", ex);
-        return ex.toProblemDetail();
-    }
+	@ExceptionHandler(BaseRuntimeException.class)
+	public ProblemDetail handleBaseException(BaseRuntimeException ex) {
+		log.error("BaseRuntimeException: ", ex);
+		return ex.toProblemDetail();
+	}
+
 }

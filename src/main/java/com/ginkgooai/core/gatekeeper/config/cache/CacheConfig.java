@@ -18,27 +18,25 @@ import java.time.Duration;
 @EnableCaching
 @RequiredArgsConstructor
 public class CacheConfig {
-    private final RedisConnectionFactory connectionFactory;
 
-    @Bean
-    public CacheManager cacheManager() {
-        RedisCacheManager.RedisCacheManagerBuilder builder = RedisCacheManager
-            .builder(connectionFactory)
-            .cacheDefaults(defaultConfig());
-            
-        return builder.build();
-    }
+	private final RedisConnectionFactory connectionFactory;
 
-    @Bean
-    public RedisCacheConfiguration defaultConfig() {
-        return RedisCacheConfiguration.defaultCacheConfig()
-            .entryTtl(Duration.ofHours(1))
-            .serializeKeysWith(
-                RedisSerializationContext.SerializationPair.fromSerializer(new StringRedisSerializer())
-            )
-            .serializeValuesWith(
-                RedisSerializationContext.SerializationPair.fromSerializer(new GenericJackson2JsonRedisSerializer())
-            )
-            .disableCachingNullValues();
-    }
+	@Bean
+	public CacheManager cacheManager() {
+		RedisCacheManager.RedisCacheManagerBuilder builder = RedisCacheManager.builder(connectionFactory)
+			.cacheDefaults(defaultConfig());
+
+		return builder.build();
+	}
+
+	@Bean
+	public RedisCacheConfiguration defaultConfig() {
+		return RedisCacheConfiguration.defaultCacheConfig()
+			.entryTtl(Duration.ofHours(1))
+			.serializeKeysWith(RedisSerializationContext.SerializationPair.fromSerializer(new StringRedisSerializer()))
+			.serializeValuesWith(RedisSerializationContext.SerializationPair
+				.fromSerializer(new GenericJackson2JsonRedisSerializer()))
+			.disableCachingNullValues();
+	}
+
 }

@@ -11,15 +11,15 @@ import org.springframework.util.ObjectUtils;
 @Configuration
 public class RedissonConfig {
 
-    @Bean
-    public RedissonClient redissonClient(RedisProperties redisProperties) {
-        String prefix = "redis://";
-        Config config = new Config();
-        config.useSingleServer()
-                .setAddress(prefix + redisProperties.getHost() + ":" + redisProperties.getPort());
-        if (!ObjectUtils.isEmpty(redisProperties.getPassword())) {
-            config.useSingleServer().setPassword(redisProperties.getPassword());
-        }
-        return Redisson.create(config);
-    }
+	@Bean
+	public RedissonClient redissonClient(RedisProperties redisProperties) {
+		String prefix = "redis://";
+		Config config = new Config();
+		config.useSingleServer().setAddress(prefix + redisProperties.getHost() + ":" + redisProperties.getPort());
+		if (!ObjectUtils.isEmpty(redisProperties.getPassword())) {
+			config.useSingleServer().setPassword(redisProperties.getPassword());
+		}
+		return Redisson.create(config);
+	}
+
 }

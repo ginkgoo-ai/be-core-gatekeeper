@@ -7,8 +7,9 @@ import java.util.Optional;
 
 public class SpringSecurityAuditorAware implements AuditorAware<String> {
 
-    @Override
-    public Optional<String> getCurrentAuditor() {
-        return Optional.ofNullable(ContextUtils.getUserId());
-    }
+	@Override
+	public Optional<String> getCurrentAuditor() {
+		return Optional.ofNullable(ContextUtils.getUserId());
+	}
+
 }

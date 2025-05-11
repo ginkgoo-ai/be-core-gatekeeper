@@ -13,10 +13,10 @@ import org.hibernate.type.SqlTypes;
 @Setter
 public class QuestionnaireResult extends BaseAuditableEntity {
 
-// Assuming
-																// BaseAuditableEntity
-																// provides createdAt,
-																// updatedAt
+	// Assuming
+	// BaseAuditableEntity
+	// provides createdAt,
+	// updatedAt
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.UUID)

@@ -24,24 +24,27 @@
     <!-- Filter Bar -->
     <div class="card">
         <div class="card-body">
-            <form th:action="@{/admin/forms}" method="get" class="filter-bar">
-                <div class="form-group">
-                    <label for="name">Filter by Name</label>
-                    <input type="text" id="name" name="name" th:value="${currentName}"
-                           placeholder="Enter form name..."/>
+            <form th:action="@{/admin/forms}" method="get" class="filter-bar"
+                  style="display: flex; justify-content: space-between; align-items: flex-end; gap: 1rem;">
+                <div class="filter-inputs" style="display: flex; gap: 1rem; align-items: flex-end;">
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label for="name">Filter by Name</label>
+                        <input type="text" id="name" name="name" th:value="${currentName}"
+                               placeholder="Enter form name..."/>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label for="statusFilter">Filter by Status</label>
+                        <select id="statusFilter" name="status">
+                            <option value="">All Statuses</option>
+                            <option th:each="stat : ${T(com.ginkgooai.core.gatekeeper.domain.FormDefinition.FormStatus).values()}"
+                                    th:value="${stat}"
+                                    th:text="${stat.name().substring(0,1) + stat.name().substring(1).toLowerCase()}"
+                                    th:selected="${stat == currentStatus}">
+                            </option>
+                        </select>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label for="statusFilter">Filter by Status</label>
-                    <select id="statusFilter" name="status">
-                        <option value="">All Statuses</option>
-                        <option th:each="stat : ${T(com.ginkgooai.core.gatekeeper.domain.FormDefinition.FormStatus).values()}"
-                                th:value="${stat}"
-                                th:text="${stat.name().substring(0,1) + stat.name().substring(1).toLowerCase()}"
-                                th:selected="${stat == currentStatus}">
-                        </option>
-                    </select>
-                </div>
-                <div class="btn-group">
+                <div class="btn-group" style="margin-bottom: 0;">
                     <button type="submit" class="btn btn-primary">Apply Filters</button>
                     <a th:href="@{/admin/forms}" class="btn btn-secondary">Clear Filters</a>
                 </div>
@@ -345,10 +348,8 @@
 
   // Make sure to include a QRCode generation library like qrcode.js for the QR code functionality.
   // Example: <script src="https://cdn.rawgit.com/davidshimjs/qrcodejs/gh-pages/qrcode.min.js"></script>
-// Add this to your
-<head> or before the closing
+<head>
 </body>
-tag if you use a library.
 </script>
 
 </body>

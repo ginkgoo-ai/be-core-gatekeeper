@@ -47,37 +47,47 @@
                 <form th:action="@{/admin/forms/edit/{id}(id=${formDefinition.id})}" th:object="${updateRequest}"
                       method="post" id="editFormDefinitionForm" onsubmit="return validateFormBeforeSubmit()">
                     <div class="form-group">
-                        <label for="formDescription">Description:</label>
-                        <textarea id="formDescription" th:field="*{description}"></textarea>
+                        <label class="field-label" for="formDescription">Description:</label>
+                        <div class="field-input">
+                            <textarea id="formDescription" th:field="*{description}"></textarea>
+                        </div>
                         <div th:if="${#fields.hasErrors('description')}" th:errors="*{description}"
                              class="error-message"></div>
                     </div>
 
                     <div class="form-group">
-                        <label for="formTargetAudience">Target Audience:</label>
-                        <input type="text" id="formTargetAudience" th:field="*{targetAudience}"/>
+                        <label class="field-label" for="formTargetAudience">Target Audience:</label>
+                        <div class="field-input">
+                            <input type="text" id="formTargetAudience" th:field="*{targetAudience}"/>
+                        </div>
                     </div>
 
                     <div class="form-group">
-                        <label for="formInitialLogic">Initial Logic (JSON):</label>
-                        <textarea id="formInitialLogic" th:field="*{initialLogic}"
-                                  placeholder='e.g., {"prefillFields": ["userId"]}'></textarea>
+                        <label class="field-label" for="formInitialLogic">Initial Logic (JSON):</label>
+                        <div class="field-input">
+                            <textarea id="formInitialLogic" th:field="*{initialLogic}"
+                                      placeholder='e.g., {"prefillFields": ["userId"]}'></textarea>
+                        </div>
                     </div>
 
                     <div class="form-group">
-                        <label for="formSubmissionLogic">Submission Logic (JSON):</label>
-                        <textarea id="formSubmissionLogic" th:field="*{submissionLogic}"
-                                  placeholder='e.g., {"targetService": "/api/downstream/submit"}'></textarea>
+                        <label class="field-label" for="formSubmissionLogic">Submission Logic (JSON):</label>
+                        <div class="field-input">
+                            <textarea id="formSubmissionLogic" th:field="*{submissionLogic}"
+                                      placeholder='e.g., {"targetService": "/api/downstream/submit"}'></textarea>
+                        </div>
                     </div>
 
                     <div class="form-group">
-                        <label for="status">Status:</label>
-                        <select id="status" th:field="*{status}">
-                            <option th:each="statusOption : ${formStatuses}"
-                                    th:value="${statusOption}"
-                                    th:text="${statusOption.name()}">STATUS
-                            </option>
-                        </select>
+                        <label class="field-label" for="status">Status:</label>
+                        <div class="field-input">
+                            <select id="status" th:field="*{status}">
+                                <option th:each="statusOption : ${formStatuses}"
+                                        th:value="${statusOption}"
+                                        th:text="${statusOption.name()}">STATUS
+                                </option>
+                            </select>
+                        </div>
                         <div th:if="${#fields.hasErrors('status')}" th:errors="*{status}" class="error-message"></div>
                     </div>
 
@@ -86,88 +96,105 @@
                     <div id="sectionsContainer">
                         <!-- Existing sections will be populated via JavaScript -->
                         <th:block th:each="section, secStat : ${formDefinition.sections}">
-                            <div class="nested-item section" th:attr="data-id=${section.id}">
+                            <div class="section-container" th:attr="data-id=${section.id}">
                                 <button type="button" class="btn btn-danger btn-sm remove-btn"
-                                        onclick="this.closest('.section').remove(); updateNames('#sectionsContainer', '');">
+                                        onclick="this.closest('.section-container').remove(); updateNames('#sectionsContainer', '');">
                                     Remove Section
                                 </button>
-                                <h4>Section <span class="section-index" th:text="${secStat.index + 1}">1</span></h4>
+                                <h2 class="section-title">Section <span class="section-index"
+                                                                        th:text="${secStat.index + 1}">1</span></h2>
 
                                 <div class="form-group">
-                                    <label>Title:</label>
-                                    <input type="text" data-name="title" th:value="${section.title}"/>
-                                    <input type="hidden" data-name="id" th:value="${section.id}"/>
+                                    <label class="field-label">Title:</label>
+                                    <div class="field-input">
+                                        <input type="text" data-name="title" th:value="${section.title}"/>
+                                        <input type="hidden" data-name="id" th:value="${section.id}"/>
+                                    </div>
                                 </div>
 
                                 <div class="form-group">
-                                    <label>Order:</label>
-                                    <input type="number" data-name="order" th:value="${section.order}"/>
+                                    <label class="field-label">Order:</label>
+                                    <div class="field-input">
+                                        <input type="number" data-name="order" th:value="${section.order}"/>
+                                    </div>
                                 </div>
 
                                 <div class="form-group">
-                                    <label>Display Condition:</label>
-                                    <input type="text" data-name="condition" th:value="${section.condition}"
+                                    <label class="field-label">Display Condition:</label>
+                                    <div class="field-input">
+                                        <input type="text" data-name="condition" th:value="${section.condition}"
                                            placeholder="e.g., fields['otherField'].value == 'someValue'"/>
+                                    </div>
                                 </div>
 
                                 <h5>Fields</h5>
                                 <div class="fieldsContainer">
                                     <!-- Existing fields -->
                                     <th:block th:each="field, fieldStat : ${section.fields}">
-                                        <div class="nested-item field" th:attr="data-id=${field.id}">
+                                        <div class="field-container" th:attr="data-id=${field.id}">
                                             <button type="button" class="btn btn-danger btn-sm remove-btn"
-                                                    onclick="this.closest('.field').remove(); updateNames('#sectionsContainer', '');">
+                                                    onclick="this.closest('.field-container').remove(); updateNames('#sectionsContainer', '');">
                                                 Remove Field
                                             </button>
                                             <h5>Field <span class="field-index"
                                                             th:text="${fieldStat.index + 1}">1</span></h5>
 
                                             <div class="form-group">
-                                                <label>Name (Key):</label>
-                                                <input type="text" data-name="name" th:value="${field.name}"/>
-                                                <input type="hidden" data-name="id" th:value="${field.id}"/>
+                                                <label class="field-label">Name (Key):</label>
+                                                <div class="field-input">
+                                                    <input type="text" data-name="name" th:value="${field.name}"/>
+                                                    <input type="hidden" data-name="id" th:value="${field.id}"/>
+                                                </div>
                                             </div>
 
                                             <div class="form-group">
-                                                <label>Label:</label>
-                                                <input type="text" data-name="label" th:value="${field.label}"/>
+                                                <label class="field-label">Label:</label>
+                                                <div class="field-input">
+                                                    <input type="text" data-name="label" th:value="${field.label}"/>
+                                                </div>
                                             </div>
 
                                             <div class="form-group">
-                                                <label>Field Type:</label>
-                                                <select data-name="fieldType">
-                                                    <option th:value="${T(com.ginkgooai.core.gatekeeper.domain.types.FieldType).TEXT}"
-                                                            th:text="TEXT"
-                                                            th:selected="${T(com.ginkgooai.core.gatekeeper.domain.types.FieldType).TEXT == field.fieldType}">
-                                                        TEXT
-                                                    </option>
-                                                    <option th:value="${T(com.ginkgooai.core.gatekeeper.domain.types.FieldType).DATE}"
-                                                            th:text="DATE"
-                                                            th:selected="${T(com.ginkgooai.core.gatekeeper.domain.types.FieldType).DATE == field.fieldType}">
-                                                        DATE
-                                                    </option>
-                                                    <option th:value="${T(com.ginkgooai.core.gatekeeper.domain.types.FieldType).RADIO}"
-                                                            th:text="RADIO"
-                                                            th:selected="${T(com.ginkgooai.core.gatekeeper.domain.types.FieldType).RADIO == field.fieldType}">
-                                                        RADIO
-                                                    </option>
-                                                    <option th:value="${T(com.ginkgooai.core.gatekeeper.domain.types.FieldType).TEXTAREA}"
-                                                            th:text="TEXTAREA"
-                                                            th:selected="${T(com.ginkgooai.core.gatekeeper.domain.types.FieldType).TEXTAREA == field.fieldType}">
-                                                        TEXTAREA
-                                                    </option>
-                                                </select>
+                                                <label class="field-label">Field Type:</label>
+                                                <div class="field-input">
+                                                    <select data-name="fieldType">
+                                                        <option th:value="${T(com.ginkgooai.core.gatekeeper.domain.types.FieldType).TEXT}"
+                                                                th:text="TEXT"
+                                                                th:selected="${T(com.ginkgooai.core.gatekeeper.domain.types.FieldType).TEXT == field.fieldType}">
+                                                            TEXT
+                                                        </option>
+                                                        <option th:value="${T(com.ginkgooai.core.gatekeeper.domain.types.FieldType).DATE}"
+                                                                th:text="DATE"
+                                                                th:selected="${T(com.ginkgooai.core.gatekeeper.domain.types.FieldType).DATE == field.fieldType}">
+                                                            DATE
+                                                        </option>
+                                                        <option th:value="${T(com.ginkgooai.core.gatekeeper.domain.types.FieldType).RADIO}"
+                                                                th:text="RADIO"
+                                                                th:selected="${T(com.ginkgooai.core.gatekeeper.domain.types.FieldType).RADIO == field.fieldType}">
+                                                            RADIO
+                                                        </option>
+                                                        <option th:value="${T(com.ginkgooai.core.gatekeeper.domain.types.FieldType).TEXTAREA}"
+                                                                th:text="TEXTAREA"
+                                                                th:selected="${T(com.ginkgooai.core.gatekeeper.domain.types.FieldType).TEXTAREA == field.fieldType}">
+                                                            TEXTAREA
+                                                        </option>
+                                                    </select>
+                                                </div>
                                             </div>
 
                                             <div class="form-group">
-                                                <label>Static Options (JSON):</label>
-                                                <textarea data-name="staticOptions" th:text="${field.staticOptions}"
+                                                <label class="field-label">Static Options (JSON):</label>
+                                                <div class="field-input">
+                                                    <textarea data-name="staticOptions" th:text="${field.staticOptions}"
                                                           placeholder='e.g., [{"value":"v1","label":"Opt1"}]'></textarea>
+                                                </div>
                                             </div>
 
                                             <div class="form-group">
-                                                <label>Order:</label>
-                                                <input type="number" data-name="order" th:value="${field.order}"/>
+                                                <label class="field-label">Order:</label>
+                                                <div class="field-input">
+                                                    <input type="number" data-name="order" th:value="${field.order}"/>
+                                                </div>
                                             </div>
 
                                             <h6>Validation Rules</h6>
@@ -184,33 +211,43 @@
                                                                        th:text="${ruleStat.index + 1}">1</span></h6>
 
                                                         <div class="form-group">
-                                                            <label>Rule Type:</label>
-                                                            <select data-name="type">
-                                                                <option th:each="ruleType : ${ValidationRuleType.values()}"
-                                                                        th:value="${ruleType}"
-                                                                        th:text="${ruleType.name()}"
-                                                                        th:selected="${ruleType == rule.type}">RULE_TYPE
-                                                                </option>
-                                                            </select>
-                                                            <input type="hidden" data-name="id" th:value="${rule.id}"/>
+                                                            <label class="field-label">Rule Type:</label>
+                                                            <div class="field-input">
+                                                                <select data-name="type">
+                                                                    <option th:each="ruleType : ${ValidationRuleType.values()}"
+                                                                            th:value="${ruleType}"
+                                                                            th:text="${ruleType.name()}"
+                                                                            th:selected="${ruleType == rule.type}">
+                                                                        RULE_TYPE
+                                                                    </option>
+                                                                </select>
+                                                                <input type="hidden" data-name="id"
+                                                                       th:value="${rule.id}"/>
+                                                            </div>
                                                         </div>
 
                                                         <div class="form-group">
-                                                            <label>Value:</label>
-                                                            <input type="text" data-name="value"
+                                                            <label class="field-label">Value:</label>
+                                                            <div class="field-input">
+                                                                <input type="text" data-name="value"
                                                                    th:value="${rule.value}"/>
+                                                            </div>
                                                         </div>
 
                                                         <div class="form-group">
-                                                            <label>Error Message:</label>
-                                                            <input type="text" data-name="errorMessage"
+                                                            <label class="field-label">Error Message:</label>
+                                                            <div class="field-input">
+                                                                <input type="text" data-name="errorMessage"
                                                                    th:value="${rule.errorMessage}"/>
+                                                            </div>
                                                         </div>
 
                                                         <div class="form-group">
-                                                            <label>Custom Function:</label>
-                                                            <input type="text" data-name="customFunction"
+                                                            <label class="field-label">Custom Function:</label>
+                                                            <div class="field-input">
+                                                                <input type="text" data-name="customFunction"
                                                                    th:value="${rule.customFunction}"/>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </th:block>
@@ -243,22 +280,28 @@
 </div>
 
 <!-- Thymeleaf Templates for Dynamic Elements -->
-<div th:fragment="sectionTemplate" class="nested-item section" style="display:none;" id="sectionTemplate">
+<div th:fragment="sectionTemplate" class="section-container" style="display:none;" id="sectionTemplate">
     <button type="button" class="btn btn-danger btn-sm remove-btn"
-            onclick="this.closest('.section').remove(); updateNames('#sectionsContainer', '');">Remove Section
+            onclick="this.closest('.section-container').remove(); updateNames('#sectionsContainer', '');">Remove Section
     </button>
-    <h4>New Section (<span class="section-index"></span>)</h4>
+    <h2 class="section-title">New Section (<span class="section-index"></span>)</h2>
     <div class="form-group">
-        <label>Title:</label>
-        <input type="text" data-name="title"/> <!-- JS will set the full name attribute -->
+        <label class="field-label">Title:</label>
+        <div class="field-input">
+            <input type="text" data-name="title"/> <!-- JS will set the full name attribute -->
+        </div>
     </div>
     <div class="form-group">
-        <label>Order:</label>
-        <input type="number" data-name="order"/>
+        <label class="field-label">Order:</label>
+        <div class="field-input">
+            <input type="number" data-name="order"/>
+        </div>
     </div>
     <div class="form-group">
-        <label>Display Condition:</label>
-        <input type="text" data-name="condition" placeholder="e.g., fields['otherField'].value == 'someValue'"/>
+        <label class="field-label">Display Condition:</label>
+        <div class="field-input">
+            <input type="text" data-name="condition" placeholder="e.g., fields['otherField'].value == 'someValue'"/>
+        </div>
     </div>
 
     <h5>Fields</h5>
@@ -269,35 +312,53 @@
     </button>
 </div>
 
-<div th:fragment="fieldTemplate" class="nested-item field" style="display:none;" id="fieldTemplate">
+<div th:fragment="fieldTemplate" class="field-container" style="display:none;" id="fieldTemplate">
     <button type="button" class="btn btn-danger btn-sm remove-btn"
-            onclick="this.closest('.field').remove(); updateNames('#sectionsContainer', '');">Remove Field
+            onclick="this.closest('.field-container').remove(); updateNames('#sectionsContainer', '');">Remove Field
     </button>
     <h5>New Field (<span class="field-index"></span>)</h5>
     <div class="form-group">
-        <label>Name (Key):</label><input type="text" data-name="name"/>
+        <label class="field-label">Name (Key):</label>
+        <div class="field-input">
+            <input type="text" data-name="name"/>
+        </div>
     </div>
     <div class="form-group">
-        <label>Label:</label><input type="text" data-name="label"/>
+        <label class="field-label">Label:</label>
+        <div class="field-input">
+            <input type="text" data-name="label"/>
+        </div>
     </div>
     <div class="form-group">
-        <label>Field Type:</label>
-        <select data-name="fieldType">
-            <option th:value="${T(com.ginkgooai.core.gatekeeper.domain.types.FieldType).TEXT}" th:text="TEXT">TEXT
-            </option>
-            <option th:value="${T(com.ginkgooai.core.gatekeeper.domain.types.FieldType).DATE}" th:text="DATE">DATE
-            </option>
-            <option th:value="${T(com.ginkgooai.core.gatekeeper.domain.types.FieldType).RADIO}" th:text="RADIO">RADIO
-            </option>
-            <option th:value="${T(com.ginkgooai.core.gatekeeper.domain.types.FieldType).TEXTAREA}" th:text="TEXTAREA">
-                TEXTAREA
-            </option>
-        </select>
+        <label class="field-label">Field Type:</label>
+        <div class="field-input">
+            <select data-name="fieldType">
+                <option th:value="${T(com.ginkgooai.core.gatekeeper.domain.types.FieldType).TEXT}" th:text="TEXT">TEXT
+                </option>
+                <option th:value="${T(com.ginkgooai.core.gatekeeper.domain.types.FieldType).DATE}" th:text="DATE">DATE
+                </option>
+                <option th:value="${T(com.ginkgooai.core.gatekeeper.domain.types.FieldType).RADIO}" th:text="RADIO">
+                    RADIO
+                </option>
+                <option th:value="${T(com.ginkgooai.core.gatekeeper.domain.types.FieldType).TEXTAREA}"
+                        th:text="TEXTAREA">
+                    TEXTAREA
+                </option>
+            </select>
+        </div>
     </div>
-    <div class="form-group"><label>Static Options (JSON):</label><textarea data-name="staticOptions"
-                                                                           placeholder='e.g., [{"value":"v1","label":"Opt1"}]'></textarea>
+    <div class="form-group">
+        <label class="field-label">Static Options (JSON):</label>
+        <div class="field-input">
+            <textarea data-name="staticOptions" placeholder='e.g., [{"value":"v1","label":"Opt1"}]'></textarea>
+        </div>
     </div>
-    <div class="form-group"><label>Order:</label><input type="number" data-name="order"/></div>
+    <div class="form-group">
+        <label class="field-label">Order:</label>
+        <div class="field-input">
+            <input type="number" data-name="order"/>
+        </div>
+    </div>
 
     <h6>Validation Rules</h6>
     <div class="validationsContainer">
@@ -310,22 +371,39 @@
 
 <div th:fragment="validationRuleTemplate" class="nested-item validation-rule" style="display:none;"
      id="validationRuleTemplate">
-    <button type="button" class="btn btn-danger btn-sm remove-btn"
+    <button type="button" class="btn btn-sm btn-danger remove-btn"
             onclick="this.closest('.validation-rule').remove(); updateNames('#sectionsContainer', '');">Remove Rule
     </button>
     <h6>New Rule (<span class="validation-rule-index"></span>)</h6>
     <div class="form-group">
-        <label>Rule Type:</label>
-        <select data-name="type">
-            <option th:each="type : ${ValidationRuleType.values()}"
-                    th:value="${type}"
-                    th:text="${type.name()}">RULE_TYPE
-            </option>
-        </select>
+        <label class="field-label">Rule Type:</label>
+        <div class="field-input">
+            <select data-name="type">
+                <option th:each="type : ${ValidationRuleType.values()}"
+                        th:value="${type}"
+                        th:text="${type.name()}">RULE_TYPE
+                </option>
+            </select>
+        </div>
     </div>
-    <div class="form-group"><label>Value:</label><input type="text" data-name="value"/></div>
-    <div class="form-group"><label>Error Message:</label><input type="text" data-name="errorMessage"/></div>
-    <div class="form-group"><label>Custom Function:</label><input type="text" data-name="customFunction"/></div>
+    <div class="form-group">
+        <label class="field-label">Value:</label>
+        <div class="field-input">
+            <input type="text" data-name="value"/>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="field-label">Error Message:</label>
+        <div class="field-input">
+            <input type="text" data-name="errorMessage"/>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="field-label">Custom Function:</label>
+        <div class="field-input">
+            <input type="text" data-name="customFunction"/>
+        </div>
+    </div>
 </div>
 
 <script th:inline="javascript">
@@ -334,10 +412,10 @@
   function updateNames(containerSelector, prefix) {
     const container = document.querySelector(containerSelector) || document; // Allow targeting specific container or whole form for initial setup
 
-    const sections = container.querySelectorAll(':scope > .section');
+    const sections = container.querySelectorAll(':scope > .section-container');
     sections.forEach((section, sectionIndex) => {
       const sectionPrefix = prefix + "sections[" + sectionIndex + "].";
-      section.querySelectorAll(':scope > .form-group [data-name]').forEach(input => {
+      section.querySelectorAll(':scope > .form-group .field-input [data-name], :scope > .form-group input[type=hidden][data-name]').forEach(input => {
         input.name = sectionPrefix + input.dataset.name;
       });
       if (section.querySelector('.section-index')) section.querySelector('.section-index').textContent = sectionIndex + 1;
@@ -345,10 +423,10 @@
 
       const fieldsContainer = section.querySelector(':scope > .fieldsContainer');
       if (fieldsContainer) {
-        const fields = fieldsContainer.querySelectorAll(':scope > .field');
+        const fields = fieldsContainer.querySelectorAll(':scope > .field-container');
         fields.forEach((field, fieldIndex) => {
           const fieldPrefix = sectionPrefix + "fields[" + fieldIndex + "].";
-          field.querySelectorAll(':scope > .form-group [data-name]').forEach(input => {
+          field.querySelectorAll(':scope > .form-group .field-input [data-name], :scope > .form-group input[type=hidden][data-name]').forEach(input => {
             input.name = fieldPrefix + input.dataset.name;
           });
           if (field.querySelector('.field-index')) field.querySelector('.field-index').textContent = fieldIndex + 1;
@@ -358,7 +436,7 @@
             const rules = validationsContainer.querySelectorAll(':scope > .validation-rule');
             rules.forEach((rule, ruleIndex) => {
               const rulePrefix = fieldPrefix + "validations[" + ruleIndex + "].";
-              rule.querySelectorAll(':scope > .form-group [data-name]').forEach(input => {
+              rule.querySelectorAll(':scope > .form-group .field-input [data-name], :scope > .form-group input[type=hidden][data-name]').forEach(input => {
                 input.name = rulePrefix + input.dataset.name;
               });
               if (rule.querySelector('.validation-rule-index')) rule.querySelector('.validation-rule-index').textContent = ruleIndex + 1;
@@ -379,7 +457,7 @@
   }
 
   function addField(buttonElement) {
-    const sectionDiv = buttonElement.closest('.section');
+    const sectionDiv = buttonElement.closest('.section-container');
     const fieldsContainer = sectionDiv.querySelector('.fieldsContainer');
     const template = document.getElementById('fieldTemplate');
     const clone = template.cloneNode(true);
@@ -390,7 +468,7 @@
   }
 
   function addValidationRule(buttonElement) {
-    const fieldDiv = buttonElement.closest('.field');
+    const fieldDiv = buttonElement.closest('.field-container');
     const validationsContainer = fieldDiv.querySelector('.validationsContainer');
     const template = document.getElementById('validationRuleTemplate');
     const clone = template.cloneNode(true);
@@ -442,7 +520,7 @@
     const sectionsContainer = document.getElementById('sectionsContainer');
     if (!sectionsContainer) return;
 
-    const sections = sectionsContainer.querySelectorAll(':scope > .section');
+    const sections = sectionsContainer.querySelectorAll(':scope > .section-container');
 
     sections.forEach((sectionElement, index) => {
       const sectionId = sectionElement.dataset.id || `section-${index}`;
@@ -477,7 +555,7 @@
 
       const fieldsContainer = sectionElement.querySelector('.fieldsContainer');
       if (fieldsContainer) {
-        const fields = fieldsContainer.querySelectorAll(':scope > .field');
+        const fields = fieldsContainer.querySelectorAll(':scope > .field-container');
         fields.forEach((fieldElement, fieldIndex) => {
           const fieldId = fieldElement.dataset.id || `field-${sectionId}-${fieldIndex}`;
           const labelInput = fieldElement.querySelector('input[data-name="label"]');
