@@ -18,12 +18,14 @@ public class FormSubmissionDTO {
 	/**
 	 * Form ID
 	 */
-	private String formId;
+	private String questionnaireId;
+
+	private String questionnaireName;
 
 	/**
 	 * Form name
 	 */
-	private String formName;
+	private String questionnaireType;
 
 	/**
 	 * Submitting user ID
@@ -38,7 +40,7 @@ public class FormSubmissionDTO {
 	/**
 	 * Form data in key-value format
 	 */
-	private Map<String, Object> data = new HashMap<>();
+	private Map<String, Object> responses = new HashMap<>();
 
 	/**
 	 * Tracking information, can be used to track the form submission process

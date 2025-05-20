@@ -4,13 +4,103 @@
     <meta charset="UTF-8">
     <title>Ginkgoo AI Gateway Keeper -Create Form Definitions</title>
     <link rel="stylesheet" th:href="@{/css/buffer-ui.css}"/>
+    <style>
+        /* 添加与dynamic_form_renderer.html一致的样式 */
+        .section-container {
+            border: 1px solid var(--border-color-light);
+            padding: var(--spacing-lg);
+            margin-bottom: var(--spacing-xl);
+            border-radius: var(--border-radius-md);
+            background-color: var(--bg-card);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .section-title {
+            font-size: var(--font-size-xl);
+            margin-top: 0;
+            color: var(--primary-brand);
+            border-bottom: 1px solid var(--border-color-light);
+            padding-bottom: var(--spacing-md);
+            margin-bottom: var(--spacing-lg);
+            font-weight: var(--font-weight-medium);
+        }
+
+        .field-container {
+            margin-bottom: var(--spacing-lg);
+            padding-left: var(--spacing-md);
+            border-left: 3px solid var(--primary-brand-light);
+        }
+
+        .field-label {
+            display: block;
+            margin-bottom: var(--spacing-xs);
+            font-weight: var(--font-weight-medium);
+            color: var(--text-secondary);
+        }
+
+        .field-input input[type="text"],
+        .field-input input[type="number"],
+        .field-input input[type="email"],
+        .field-input input[type="password"],
+        .field-input input[type="date"],
+        .field-input select,
+        .field-input textarea {
+            width: 100%;
+            padding: var(--spacing-sm) var(--spacing-md);
+            font-size: var(--font-size-md);
+            color: var(--text-primary);
+            background-color: var(--bg-input);
+            border: 1px solid var(--border-color-strong);
+            border-radius: var(--border-radius-md);
+            transition: border-color .15s ease-in-out, box-shadow .15s ease-in-out;
+            box-shadow: var(--shadow-xs);
+        }
+
+        .field-input input:focus,
+        .field-input select:focus,
+        .field-input textarea:focus {
+            border-color: var(--primary-brand);
+            outline: 0;
+            box-shadow: 0 0 0 3px var(--border-focus-ring), var(--shadow-xs);
+        }
+
+        .nested-item {
+            background-color: var(--bg-hover-light);
+            border-radius: var(--border-radius-md);
+            padding: var(--spacing-md);
+            margin-bottom: var(--spacing-md);
+        }
+
+        .nested-item.section {
+            border: 1px solid var(--border-color-light);
+            padding: var(--spacing-lg);
+            margin-bottom: var(--spacing-xl);
+            border-radius: var(--border-radius-md);
+            background-color: var(--bg-card);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .nested-item.field {
+            margin-bottom: var(--spacing-lg);
+            padding-left: var(--spacing-md);
+            border-left: 3px solid var(--primary-brand-light);
+            background-color: transparent;
+        }
+
+        .nested-item.validation-rule {
+            background-color: var(--bg-hover-light);
+            border-radius: var(--border-radius-md);
+            padding: var(--spacing-md);
+            margin-bottom: var(--spacing-md);
+        }
+    </style>
 </head>
 <body>
 
 <div class="page-container">
     <header class="page-header">
         <div class="logo-title">
-            <img th:src="@{https://uploads.linear.app/fee8b358-afe7-4f9d-8ec6-bbcc84fb2a90/aa77c589-9a7f-4c32-9403-547ffb4a2616/256x256/65e10f8a-3bf4-4aa9-86ad-4b4713e1a8db}"
+            <img th:src="@{/icon.png}"
                  alt="Logo" class="logo"/>
             <h1>Ginkgoo AI Gateway Keeper</h1>
         </div>

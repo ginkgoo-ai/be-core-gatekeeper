@@ -328,7 +328,7 @@
     <header class="page-header" id="dynamicPageHeader" style="display:none;">
         <!-- Initially hidden, JS will show if needed -->
         <div class="logo-title">
-            <img th:src="@{https://uploads.linear.app/fee8b358-afe7-4f9d-8ec6-bbcc84fb2a90/aa77c589-9a7f-4c32-9403-547ffb4a2616/256x256/65e10f8a-3bf4-4aa9-86ad-4b4713e1a8db}"
+            <img th:src="@{/icon.png}"
                  alt="Logo" class="logo"/>
             <h1 id="pageHeaderTitle">Ginkgoo AI Gateway Keeper</h1> <!-- Title can be dynamic if needed -->
         </div>
@@ -892,43 +892,20 @@
     }));
 
 
+    const urlParams = new URLSearchParams(window.location.search);
+    const queryParams = {};
+    urlParams.forEach((value, key) => {
+      queryParams[key] = value;
+    });
+    
     const submissionPayload = {
       formDefinitionId: currentFormId,
       responseData: data,
+      queryParams: queryParams, // 添加URL参数
       // userId: "someUserId" // TODO: Implement userId retrieval if needed by the submission endpoint
     };
 
     let effectiveSubmissionUrl = '/api/gatekeeper/v1/submit/forms/{formId}'; // Default/fallback submission URL
-
-    if (formDefinitionData && formDefinitionData.submissionLogic) {
-      let logicNode = formDefinitionData.submissionLogic;
-      // If submissionLogic is a string, try to parse it as JSON
-      if (typeof logicNode === 'string') {
-        try {
-          logicNode = JSON.parse(logicNode);
-        } catch (e) {
-          console.error("Failed to parse submissionLogic string as JSON:", e);
-          // If it's a simple string that looks like a URL path, use it directly
-          if (logicNode.startsWith("/")) {
-            console.warn(`Using submissionLogic string "${logicNode}" directly as URL.`);
-            effectiveSubmissionUrl = logicNode;
-            logicNode = null; // Prevent further processing as object
-          } else {
-            logicNode = null; // Not a valid JSON string or direct path
-          }
-        }
-      }
-      // If logicNode is now an object and has targetService
-      if (logicNode && typeof logicNode === 'object' && logicNode.targetService) {
-        effectiveSubmissionUrl = logicNode.targetService;
-        console.log("Using targetService from submissionLogic:", effectiveSubmissionUrl);
-      } else if (typeof logicNode === 'string' && logicNode.startsWith('/')) {
-        // This case is for when submissionLogic was a valid path string and not JSON
-        // effectiveSubmissionUrl is already set above
-      } else if (formDefinitionData.submissionLogic) { // If it was some other non-empty value not parsed
-        console.warn("submissionLogic found but no targetService or valid path string extracted. Using fallback URL.", formDefinitionData.submissionLogic);
-      }
-    }
 
     // Replace {formId} placeholder in the URL if it exists
     if (currentFormId && effectiveSubmissionUrl.includes("{formId}")) {

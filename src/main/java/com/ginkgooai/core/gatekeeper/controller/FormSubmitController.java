@@ -1,22 +1,15 @@
 package com.ginkgooai.core.gatekeeper.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ginkgooai.core.gatekeeper.domain.FormDefinition;
-import com.ginkgooai.core.gatekeeper.domain.SectionDefinition;
-import com.ginkgooai.core.gatekeeper.domain.ValidationRule;
-import com.ginkgooai.core.gatekeeper.domain.types.ValidationRuleType;
 import com.ginkgooai.core.gatekeeper.dto.FormDefinitionDTO;
 import com.ginkgooai.core.gatekeeper.dto.FormSubmissionDTO;
 import com.ginkgooai.core.gatekeeper.dto.FormSubmissionResultDTO;
 import com.ginkgooai.core.gatekeeper.dto.request.QuestionnaireSubmissionRequest;
-import com.ginkgooai.core.gatekeeper.enums.FormType;
-import com.ginkgooai.core.gatekeeper.exception.ResourceNotFoundException;
 import com.ginkgooai.core.gatekeeper.service.FormDefinitionService;
 import com.ginkgooai.core.gatekeeper.service.FormValidationService;
 import com.ginkgooai.core.gatekeeper.service.QuestionnaireService;
-
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -24,15 +17,16 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/gatekeeper/v1/submit")
@@ -74,7 +68,8 @@ public class FormSubmitController {
 					@ApiResponse(responseCode = "500", description = "Server error") })
 	public ResponseEntity<?> submitForm(@PathVariable String formIdentifier,
 			@RequestParam(required = false) String userId, @RequestBody Map<String, Object> formData,
-			@RequestHeader(value = "Authorization", required = false) String authHeader) {
+			@RequestHeader(value = "Authorization", required = false) String authHeader,
+			@RequestParam Map<String, String> allRequestParams) {
 
 		try {
 			log.info("Form submission received: form={}, userId={}", formIdentifier, userId);
@@ -125,7 +120,7 @@ public class FormSubmitController {
 
 			// 4. Process submission according to submissionLogic
 			// if (formDefinition.getSubmissionLogic() != null) {
-			return processSubmission(formDefinition, formData, userId, authHeader);
+			return processSubmission(formDefinition, formData, userId, authHeader, allRequestParams);
 			// }
 
 		}
@@ -140,7 +135,16 @@ public class FormSubmitController {
 	 * Process form submission according to the form definition's submission logic
 	 */
 	private ResponseEntity<?> processSubmission(FormDefinitionDTO formDefinition, Map<String, Object> formData,
-			String userId, String authHeader) {
+			String userId, String authHeader, Map<String, String> requestParams) {
+
+		// 从formData中获取前端传来的queryParams
+		@SuppressWarnings("unchecked")
+		Map<String, String> queryParams = (Map<String, String>) formData.get("queryParams");
+		if (queryParams != null) {
+			// 合并queryParams到requestParams
+			requestParams.putAll(queryParams);
+			log.info("Added URL query parameters from client: {}", queryParams);
+		}
 
 		try {
 			// Handle Questionnaire Type
@@ -204,13 +208,26 @@ public class FormSubmitController {
 				return ResponseEntity.ok(result);
 			}
 
+			// 处理URL中的动态参数，替换{paramName}占位符
+			if (targetService.contains("{") && targetService.contains("}")) {
+				log.info("Detected dynamic parameters in targetService URL: {}", targetService);
+				for (Map.Entry<String, String> param : requestParams.entrySet()) {
+					String placeholder = "{" + param.getKey() + "}";
+					if (targetService.contains(placeholder)) {
+						targetService = targetService.replace(placeholder, param.getValue());
+						log.info("Replaced placeholder {} with value {}", placeholder, param.getValue());
+					}
+				}
+				log.info("Final targetService URL after parameter substitution: {}", targetService);
+			}
+
 			// Build submission DTO
 			FormSubmissionDTO submissionDTO = new FormSubmissionDTO();
-			submissionDTO.setFormId(formDefinition.getId());
-			submissionDTO.setFormName(formDefinition.getName());
+			submissionDTO.setQuestionnaireId(formDefinition.getId());
+			submissionDTO.setQuestionnaireName(formDefinition.getName());
 			submissionDTO.setUserId(userId);
 			submissionDTO.setSubmittedAt(new Date());
-			submissionDTO.setData(formData);
+			submissionDTO.setResponses((Map) formData.get("responseData"));
 
 			// Prepare HTTP request
 			HttpHeaders headers = new HttpHeaders();
