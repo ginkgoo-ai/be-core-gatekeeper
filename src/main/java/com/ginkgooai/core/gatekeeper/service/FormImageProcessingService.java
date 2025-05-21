@@ -85,6 +85,7 @@ public class FormImageProcessingService {
 				If the image contains multiple sections, represent them accordingly.
 				Ensure field names (keys) are unique and use snake_case.
 				If a field appears to be mandatory, add a REQUIRED validation.
+				Field labels should not end with a colon (:) character.
 				The output should be ONLY the JSON object string. Do not include any other text or explanations.
 				""";
 

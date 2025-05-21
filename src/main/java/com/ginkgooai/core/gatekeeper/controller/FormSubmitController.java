@@ -3,9 +3,7 @@ package com.ginkgooai.core.gatekeeper.controller;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ginkgooai.core.gatekeeper.domain.FormDefinition;
-import com.ginkgooai.core.gatekeeper.dto.FormDefinitionDTO;
-import com.ginkgooai.core.gatekeeper.dto.FormSubmissionDTO;
-import com.ginkgooai.core.gatekeeper.dto.FormSubmissionResultDTO;
+import com.ginkgooai.core.gatekeeper.dto.*;
 import com.ginkgooai.core.gatekeeper.dto.request.QuestionnaireSubmissionRequest;
 import com.ginkgooai.core.gatekeeper.service.FormDefinitionService;
 import com.ginkgooai.core.gatekeeper.service.FormValidationService;
@@ -132,16 +130,68 @@ public class FormSubmitController {
 	}
 
 	/**
+	 * Convert name-based response data to label-based format
+	 * @param formDefinition The form definition containing field metadata
+	 * @param nameBasedResponses Response data using field names as keys
+	 * @return Response data using field labels as keys
+	 */
+	private Map<String, Object> convertNameToLabelBasedResponses(FormDefinitionDTO formDefinition,
+			Map<String, Object> nameBasedResponses) {
+		if (nameBasedResponses == null || formDefinition == null || formDefinition.getSections() == null) {
+			return nameBasedResponses;
+		}
+
+		// Create name to label mapping
+		Map<String, String> nameToLabelMap = new HashMap<>();
+
+		// Iterate all sections and fields to build name->label mapping
+		for (SectionDefinitionDTO section : formDefinition.getSections()) {
+			if (section == null || section.getFields() == null) {
+				continue;
+			}
+
+			for (FieldDefinitionDTO field : section.getFields()) {
+				if (field == null) {
+					continue;
+				}
+
+				String name = field.getName();
+				String label = field.getLabel();
+
+				if (name != null && label != null) {
+					nameToLabelMap.put(name, label);
+					log.debug("Mapping field.name -> field.label: {} -> {}", name, label);
+				}
+			}
+		}
+
+		// Create label-based response data using the mapping
+		Map<String, Object> labelBasedResponses = new HashMap<>();
+		for (Map.Entry<String, Object> entry : nameBasedResponses.entrySet()) {
+			String fieldName = entry.getKey();
+			Object value = entry.getValue();
+
+			// Use label as key if found; otherwise keep original name
+			String key = nameToLabelMap.getOrDefault(fieldName, fieldName);
+			labelBasedResponses.put(key, value);
+		}
+
+		log.info("Converted response data format: from name-based to label-based, field count: {}",
+				labelBasedResponses.size());
+		return labelBasedResponses;
+	}
+	
+	/**
 	 * Process form submission according to the form definition's submission logic
 	 */
 	private ResponseEntity<?> processSubmission(FormDefinitionDTO formDefinition, Map<String, Object> formData,
 			String userId, String authHeader, Map<String, String> requestParams) {
 
-		// 从formData中获取前端传来的queryParams
+		// Get queryParams from the form data submitted by client
 		@SuppressWarnings("unchecked")
 		Map<String, String> queryParams = (Map<String, String>) formData.get("queryParams");
 		if (queryParams != null) {
-			// 合并queryParams到requestParams
+			// Merge queryParams into requestParams
 			requestParams.putAll(queryParams);
 			log.info("Added URL query parameters from client: {}", queryParams);
 		}
@@ -227,7 +277,15 @@ public class FormSubmitController {
 			submissionDTO.setQuestionnaireName(formDefinition.getName());
 			submissionDTO.setUserId(userId);
 			submissionDTO.setSubmittedAt(new Date());
-			submissionDTO.setResponses((Map) formData.get("responseData"));
+
+			// Get original response data
+			@SuppressWarnings("unchecked")
+			Map<String, Object> originalResponses = (Map<String, Object>) formData.get("responseData");
+
+			// Convert to format using field.label as keys
+			Map<String, Object> labelBasedResponses = convertNameToLabelBasedResponses(formDefinition,
+					originalResponses);
+			submissionDTO.setResponses(labelBasedResponses);
 
 			// Prepare HTTP request
 			HttpHeaders headers = new HttpHeaders();
