@@ -1,11 +1,12 @@
-package com.ginkgooai.core.gatekeeper.controller;
+package com.ginkgooai.core.gatekeeper.controller.admin;
 
 import com.ginkgooai.core.gatekeeper.domain.FormDefinition;
-import com.ginkgooai.core.gatekeeper.dto.request.CreateFormDefinitionRequest;
 import com.ginkgooai.core.gatekeeper.dto.FormDefinitionDTO;
 import com.ginkgooai.core.gatekeeper.dto.UpdateFormDefinitionRequest;
+import com.ginkgooai.core.gatekeeper.dto.request.CreateFormDefinitionRequest;
 import com.ginkgooai.core.gatekeeper.exception.ResourceNotFoundException;
 import com.ginkgooai.core.gatekeeper.service.FormDefinitionService;
+import com.ginkgooai.core.gatekeeper.service.FormImageProcessingService;
 import com.ginkgooai.core.gatekeeper.util.FormRenderingHelper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -21,24 +22,29 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
-import org.springframework.http.ResponseEntity;
-import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import java.io.IOException;
 import java.net.URI;
+import java.util.Map;
 
 @RestController
-@RequestMapping("/api/gatekeeper/v1/forms")
+@RequestMapping("/admin/forms")
 @RequiredArgsConstructor
 @Tag(name = "Form Definition Management", description = "APIs for managing form definitions")
 @Slf4j
-public class FormDefinitionController {
+public class AdminFormController {
 
 	private final FormDefinitionService formDefinitionService;
 
 	private final FormRenderingHelper formRenderingHelper;
+
+	private final FormImageProcessingService formImageProcessingService;
 
 	@PostMapping
 	@Operation(summary = "Create a new form definition via form data",
@@ -67,7 +73,7 @@ public class FormDefinitionController {
 		}
 	}
 
-	@PostMapping("/import")
+	@PostMapping("/json")
 	@Operation(summary = "Import and create a new form definition from JSON",
 			description = "Accepts a JSON body matching the CreateFormDefinitionRequest structure.",
 			responses = {
@@ -95,6 +101,31 @@ public class FormDefinitionController {
 			log.error("Unexpected error during form definition import for name '{}'", request.getName(), e);
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
 				.body("An unexpected error occurred during import.");
+		}
+	}
+
+	@PostMapping(value = "/file", produces = MediaType.APPLICATION_JSON_VALUE)
+	@ResponseBody
+	public ResponseEntity<?> handleImageImport(@RequestParam("imageFile") MultipartFile imageFile) {
+		if (imageFile.isEmpty()) {
+			return ResponseEntity.badRequest().body(Map.of("error", "Image file is empty"));
+		}
+
+		try {
+			log.info("Processing image import: {}", imageFile.getOriginalFilename());
+			String generatedJson = formImageProcessingService.processImageToFormJson(imageFile);
+			log.info("Generated JSON from image: {}", generatedJson);
+			return ResponseEntity.ok(generatedJson);
+		}
+		catch (IOException e) {
+			log.error("IO Error processing image: {}", imageFile.getOriginalFilename(), e);
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+				.body(Map.of("error", "IO error processing image: " + e.getMessage()));
+		}
+		catch (Exception e) {
+			log.error("Error processing image with AI: {}", imageFile.getOriginalFilename(), e);
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+				.body(Map.of("error", "Failed to process image with AI: " + e.getMessage()));
 		}
 	}
 
@@ -144,29 +175,4 @@ public class FormDefinitionController {
 		Page<FormDefinitionDTO> page = formDefinitionService.findFormDefinitions(pageable, name, status);
 		return ResponseEntity.ok(page);
 	}
-
-	@GetMapping("/preview/{id}")
-	public String previewForm(@PathVariable String id, Model model) {
-		log.debug("Admin request to preview form with ID: {}", id);
-		try {
-			FormDefinitionDTO formDefinition = formDefinitionService.findFormDefinitionById(id)
-				.orElseThrow(() -> new ResourceNotFoundException("FormDefinition", "id", id));
-
-			// 添加所需的枚举类型到model中，避免在Thymeleaf模板中使用T()引用
-			model.addAttribute("FieldType", com.ginkgooai.core.gatekeeper.domain.types.FieldType.class);
-			model.addAttribute("ValidationRuleType",
-					com.ginkgooai.core.gatekeeper.domain.types.ValidationRuleType.class);
-			model.addAttribute("OptionsSourceType", com.ginkgooai.core.gatekeeper.domain.types.OptionsSourceType.class);
-
-			model.addAttribute("formDefinition", formDefinition);
-			model.addAttribute("renderingHelper", formRenderingHelper);
-			return "admin/form-preview";
-		}
-		catch (ResourceNotFoundException e) {
-			log.warn("Form definition not found for preview with ID: {}", id);
-			model.addAttribute("errorMessage", "Form definition with ID " + id + " not found.");
-			return "redirect:/admin/forms?error=notfound";
-		}
-	}
-
 }

@@ -481,7 +481,7 @@
   function fetchFormDefinitionAndRender(formId, mode) {
     showGlobalLoading();
     hideGlobalError();
-    const apiUrl = `/api/gatekeeper/v1/render/forms/${formId}`;
+    const apiUrl = `/forms/${formId}`;
 
     fetch(apiUrl)
         .then(response => {
@@ -905,7 +905,7 @@
       // userId: "someUserId" // TODO: Implement userId retrieval if needed by the submission endpoint
     };
 
-    let effectiveSubmissionUrl = '/api/gatekeeper/v1/submit/forms/{formId}'; // Default/fallback submission URL
+    let effectiveSubmissionUrl = '/forms/{formId}/results'; // Default/fallback submission URL
 
     // Replace {formId} placeholder in the URL if it exists
     if (currentFormId && effectiveSubmissionUrl.includes("{formId}")) {

@@ -1,7 +1,8 @@
 package com.ginkgooai.core.gatekeeper.controller;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ginkgooai.core.gatekeeper.client.identity.UserClient;
+import com.ginkgooai.core.gatekeeper.client.identity.dto.UserInfo;
 import com.ginkgooai.core.gatekeeper.domain.FormDefinition;
 import com.ginkgooai.core.gatekeeper.dto.*;
 import com.ginkgooai.core.gatekeeper.dto.request.QuestionnaireSubmissionRequest;
@@ -27,10 +28,10 @@ import java.util.Map;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/gatekeeper/v1/submit")
+@RequestMapping
 @Tag(name = "Form Submission", description = "APIs for submitting form data")
 @Slf4j
-public class FormSubmitController {
+public class FormController {
 
 	private final FormDefinitionService formDefinitionService;
 
@@ -38,25 +39,129 @@ public class FormSubmitController {
 
 	private final QuestionnaireService questionnaireService;
 
-	private final ObjectMapper objectMapper;
-
+	private final UserClient userClient;
+	
 	private final RestTemplate restTemplate;
 
 	@Autowired
-	public FormSubmitController(FormDefinitionService formDefinitionService,
-			FormValidationService formValidationService, ObjectMapper objectMapper, RestTemplate restTemplate,
-			QuestionnaireService questionnaireService) {
+	public FormController(FormDefinitionService formDefinitionService, FormValidationService formValidationService,
+			UserClient userClient, RestTemplate restTemplate, QuestionnaireService questionnaireService) {
 		this.formDefinitionService = formDefinitionService;
 		this.formValidationService = formValidationService;
-		this.objectMapper = objectMapper;
+		this.userClient = userClient;
 		this.restTemplate = restTemplate;
 		this.questionnaireService = questionnaireService;
 	}
 
-	@PostMapping("/forms/{formIdentifier}")
+	@GetMapping("/forms/{formId}")
+	@Operation(summary = "Get form definition for rendering",
+			description = "Retrieves a form definition by its identifier (name or ID) optimized for frontend rendering",
+			parameters = { @Parameter(name = "formIdentifier", description = "Form name or ID", required = true),
+					@Parameter(name = "userId", description = "User ID for prefilling form data"),
+					@Parameter(name = "version", description = "Optional form version, defaults to latest") },
+			responses = {
+					@ApiResponse(responseCode = "200", description = "Form definition found",
+							content = @Content(schema = @Schema(implementation = FormRenderDTO.class))),
+					@ApiResponse(responseCode = "404", description = "Form definition not found"),
+					@ApiResponse(responseCode = "500", description = "Server error") })
+	public ResponseEntity<?> getFormForRendering(@PathVariable("formId") String formId,
+			@RequestParam(required = false) String userId, @RequestParam(required = false) String version,
+			@RequestHeader(value = "Authorization", required = false) String authHeader) {
+
+		try {
+			log.info("Requesting form for rendering: identifier={}, userId={}, version={}", formId, userId, version);
+
+			Optional<FormDefinitionDTO> formDefinitionOpt = formDefinitionService.findFormDefinitionById(formId);
+
+			if (formDefinitionOpt.isEmpty()) {
+				log.debug("Form not found by ID, trying by name: {}", formId);
+				formDefinitionOpt = formDefinitionService
+					.findFormDefinitions(null, formId, FormDefinition.FormStatus.PUBLISHED)
+					.getContent()
+					.stream()
+					.findFirst();
+			}
+
+			if (formDefinitionOpt.isEmpty()) {
+				log.warn("Form definition not found: {}", formId);
+				return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Form definition not found: " + formId);
+			}
+
+			FormDefinitionDTO formDefinition = formDefinitionOpt.get();
+
+			FormRenderDTO renderDTO = new FormRenderDTO(formDefinition);
+
+			if (userId != null && formDefinition.getInitialLogic() != null) {
+				applyInitialLogic(renderDTO, formDefinition.getInitialLogic(), userId);
+			}
+
+			log.info("Successfully prepared form for rendering: {}", formDefinition.getName());
+			return ResponseEntity.ok(renderDTO);
+
+		}
+		catch (Exception e) {
+			log.error("Error preparing form for rendering: {}", formId, e);
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+				.body("Error preparing form for rendering: " + e.getMessage());
+		}
+	}
+
+	/**
+	 * Apply form initialization logic, including data prefilling
+	 */
+	private void applyInitialLogic(FormRenderDTO renderDTO, JsonNode initialLogic, String userId) {
+		try {
+			// Process prefill fields
+			if (initialLogic.has("prefillFields") && initialLogic.has("prefillSource")) {
+				String prefillSource = initialLogic.get("prefillSource").asText();
+
+				// Replace URL parameters
+				prefillSource = prefillSource.replace("{userId}", userId);
+
+				// Get prefill data
+				Map<String, Object> prefillData = fetchPrefillData(prefillSource, userId);
+				if (prefillData != null && !prefillData.isEmpty()) {
+					renderDTO.setPrefillData(prefillData);
+				}
+			}
+		}
+		catch (Exception e) {
+			log.error("Error applying initial logic: {}", e.getMessage(), e);
+		}
+	}
+
+	/**
+	 * Fetch prefill data from the specified source
+	 */
+	private Map<String, Object> fetchPrefillData(String prefillSource, String userId) {
+		// Example: Handle internal user API
+		if (prefillSource.contains("/api/users/") && userClient != null) {
+			try {
+				ResponseEntity<UserInfo> response = userClient.getUserById(userId);
+				if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
+					UserInfo userInfo = response.getBody();
+
+					Map<String, Object> prefillData = new HashMap<>();
+					prefillData.put("firstName", userInfo.getFirstName());
+					prefillData.put("lastName", userInfo.getLastName());
+					prefillData.put("email", userInfo.getEmail());
+					// Add more fields as needed
+
+					return prefillData;
+				}
+			}
+			catch (Exception e) {
+				log.warn("Error fetching user data for prefill: {}", e.getMessage());
+			}
+		}
+
+		return new HashMap<>();
+	}
+
+	@PostMapping("/forms/{formId}/results")
 	@Operation(summary = "Submit form data",
 			description = "Validates and submits form data based on the form definition",
-			parameters = { @Parameter(name = "formIdentifier", description = "Form name or ID", required = true),
+			parameters = { @Parameter(name = "formId", description = "Form name or ID", required = true),
 					@Parameter(name = "userId", description = "User ID associated with the submission") },
 			responses = {
 					@ApiResponse(responseCode = "200", description = "Form data submitted successfully",
@@ -64,23 +169,23 @@ public class FormSubmitController {
 					@ApiResponse(responseCode = "400", description = "Invalid form data"),
 					@ApiResponse(responseCode = "404", description = "Form definition not found"),
 					@ApiResponse(responseCode = "500", description = "Server error") })
-	public ResponseEntity<?> submitForm(@PathVariable String formIdentifier,
+	public ResponseEntity<?> submitForm(@PathVariable("formId") String formId,
 			@RequestParam(required = false) String userId, @RequestBody Map<String, Object> formData,
 			@RequestHeader(value = "Authorization", required = false) String authHeader,
 			@RequestParam Map<String, String> allRequestParams) {
 
 		try {
-			log.info("Form submission received: form={}, userId={}", formIdentifier, userId);
+			log.info("Form submission received: form={}, userId={}", formId, userId);
 
 			// 1. Get form definition - first try as ID
 			Optional<FormDefinitionDTO> formDefinitionOpt = formDefinitionService
-				.findFormDefinitionById(formIdentifier);
+				.findFormDefinitionById(formId);
 
 			// If not found by ID, try by name
 			if (formDefinitionOpt.isEmpty()) {
 				// Try to find by name
 				formDefinitionOpt = formDefinitionService
-					.findFormDefinitions(null, formIdentifier, FormDefinition.FormStatus.PUBLISHED)
+					.findFormDefinitions(null, formId, FormDefinition.FormStatus.PUBLISHED)
 					.getContent()
 					.stream()
 					.findFirst();
@@ -88,21 +193,11 @@ public class FormSubmitController {
 
 			// If still not found, return 404
 			if (formDefinitionOpt.isEmpty()) {
-				log.warn("Form definition not found for submission: {}", formIdentifier);
-				return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Form definition not found: " + formIdentifier);
+				log.warn("Form definition not found for submission: {}", formId);
+				return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Form definition not found: " + formId);
 			}
 
 			FormDefinitionDTO formDefinition = formDefinitionOpt.get();
-
-			// 2. Verify form status
-			// if (formDefinition.getStatus() != FormDefinition.FormStatus.PUBLISHED) {
-			// log.warn("Attempt to submit to non-active form: {} with status {}",
-			// formIdentifier,
-			// formDefinition.getStatus());
-			// return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-			// .body("Form is not active for submission. Current status: "
-			// + formDefinition.getStatus());
-			// }
 
 			// 3. Validate form data using FormValidationService
 			Map<String, String> validationErrors = formValidationService.validateFormData(formDefinition,
@@ -117,13 +212,11 @@ public class FormSubmitController {
 			}
 
 			// 4. Process submission according to submissionLogic
-			// if (formDefinition.getSubmissionLogic() != null) {
 			return processSubmission(formDefinition, formData, userId, authHeader, allRequestParams);
-			// }
 
 		}
 		catch (Exception e) {
-			log.error("Error processing form submission: {}", formIdentifier, e);
+			log.error("Error processing form submission: {}", formId, e);
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
 				.body("Error processing form submission: " + e.getMessage());
 		}

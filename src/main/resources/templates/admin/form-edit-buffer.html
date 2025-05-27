@@ -158,7 +158,7 @@
                  alt="Logo" class="logo"/>
             <h1>Ginkgoo AI Gateway Keeper</h1>
         </div>
-        <a th:href="@{/admin/forms}" class="btn btn-secondary">Back to List</a>
+        <a th:href="@{/admin/forms-ui}" class="btn btn-secondary">Back to List</a>
     </header>
 
     <div class="editor-layout-wrapper">
@@ -188,7 +188,7 @@
                     </p>
                 </div>
 
-                <form th:action="@{/admin/forms/edit/{id}(id=${formDefinition.id})}" th:object="${updateRequest}"
+                <form th:action="@{/admin/forms-ui/edit/{id}(id=${formDefinition.id})}" th:object="${updateRequest}"
                       method="post" id="editFormDefinitionForm" onsubmit="return validateFormBeforeSubmit()">
                     <div class="form-group">
                         <label class="field-label" for="formDescription">Description:</label>
@@ -415,7 +415,7 @@
 
                     <div class="form-actions">
                         <button type="submit" class="btn btn-primary">Save Changes</button>
-                        <a th:href="@{/admin/forms}" class="btn btn-cancel">Cancel</a>
+                        <a th:href="@{/view/forms}" class="btn btn-cancel">Cancel</a>
                     </div>
                 </form>
             </div>

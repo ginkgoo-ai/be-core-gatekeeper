@@ -15,7 +15,7 @@
                  alt="Logo" class="logo"/>
             <h1>Ginkgoo AI Gateway Keeper</h1>
         </div>
-        <a th:href="@{/admin/forms/new}" class="btn btn-primary">
+        <a th:href="@{/view/forms/new}" class="btn btn-primary">
             <!-- Optional: Add an icon here e.g. + SVG -->
             Create New Form
         </a>
@@ -24,7 +24,7 @@
     <!-- Filter Bar -->
     <div class="card">
         <div class="card-body">
-            <form th:action="@{/admin/forms}" method="get" class="filter-bar"
+            <form th:action="@{/view/forms}" method="get" class="filter-bar"
                   style="display: flex; justify-content: space-between; align-items: flex-end; gap: 1rem;">
                 <div class="filter-inputs" style="display: flex; gap: 1rem; align-items: flex-end;">
                     <div class="form-group" style="margin-bottom: 0;">
@@ -46,7 +46,7 @@
                 </div>
                 <div class="btn-group" style="margin-bottom: 0;">
                     <button type="submit" class="btn btn-primary">Apply Filters</button>
-                    <a th:href="@{/admin/forms}" class="btn btn-secondary">Clear Filters</a>
+                    <a th:href="@{/view/forms}" class="btn btn-secondary">Clear Filters</a>
                 </div>
             </form>
         </div>
@@ -94,7 +94,7 @@
                 <tr th:each="form : ${formPage.content}">
                     <td th:text="${form.id}" style="font-size: var(--font-size-xs); color: var(--text-tertiary);"></td>
                     <td>
-                        <a th:href="@{/admin/forms/edit/{id}(id=${form.id})}" th:text="${form.name}"
+                        <a th:href="@{/view/forms/edit/{id}(id=${form.id})}" th:text="${form.name}"
                            title="Edit Form"></a>
                     </td>
                     <td th:text="${form.version}"></td>
@@ -110,8 +110,8 @@
                     <td th:text="${form.createdAt != null ? #temporals.format(form.createdAt, 'dd MMM yyyy, HH:mm') : 'N/A'}"></td>
                     <td th:text="${form.updatedAt != null ? #temporals.format(form.updatedAt, 'dd MMM yyyy, HH:mm') : 'N/A'}"></td>
                     <td class="actions-cell">
-                        <a th:href="@{/admin/forms/edit/{id}(id=${form.id})}" class="btn btn-sm btn-edit">Edit</a>
-                        <a th:href="@{/admin/forms/preview/{id}(id=${form.id})}" class="btn btn-sm btn-preview"
+                        <a th:href="@{/admin/forms-ui/edit/{id}(id=${form.id})}" class="btn btn-sm btn-edit">Edit</a>
+                        <a th:href="@{/admin/forms-ui/preview/{id}(id=${form.id})}" class="btn btn-sm btn-preview"
                            target="_blank">Preview</a>
                         <button th:if="${form.formType == T(com.ginkgooai.core.gatekeeper.enums.FormType).QUESTIONNAIRE}"
                                 type="button" class="btn btn-sm btn-secondary"
@@ -129,17 +129,17 @@
                         </button>
                     </td>
                     <td class="status-actions-cell">
-                        <form th:action="@{/admin/forms/{id}/status(id=${form.id})}" method="post"
+                        <form th:action="@{/admin/forms-ui/{id}/status(id=${form.id})}" method="post"
                               style="display: inline-block;" th:if="${form.status.name() != 'PUBLISHED'}">
                             <input type="hidden" name="status" value="PUBLISHED"/>
                             <button type="submit" class="btn btn-sm btn-status-publish">Publish</button>
                         </form>
-                        <form th:action="@{/admin/forms/{id}/status(id=${form.id})}" method="post"
+                        <form th:action="@{/admin/forms-ui/{id}/status(id=${form.id})}" method="post"
                               style="display: inline-block;" th:if="${form.status.name() != 'ARCHIVED'}">
                             <input type="hidden" name="status" value="ARCHIVED"/>
                             <button type="submit" class="btn btn-sm btn-status-archive">Archive</button>
                         </form>
-                        <form th:action="@{/admin/forms/{id}/status(id=${form.id})}" method="post"
+                        <form th:action="@{/admin/forms-ui/{id}/status(id=${form.id})}" method="post"
                               style="display: inline-block;" th:if="${form.status.name() != 'DRAFT'}">
                             <input type="hidden" name="status" value="DRAFT"/>
                             <button type="submit" class="btn btn-sm btn-status-draft">To Draft</button>
@@ -159,13 +159,13 @@
             of <b th:text="${formPage.totalElements}"></b> results
         </div>
         <div class="pagination-nav" th:if="${formPage.totalPages > 1}">
-            <a th:href="@{/admin/forms(page=${formPage.number-1}, size=${formPage.size}, name=${currentName}, status=${currentStatus})}"
+            <a th:href="@{/view/forms(page=${formPage.number-1}, size=${formPage.size}, name=${currentName}, status=${currentStatus})}"
                class="btn" th:classappend="${!formPage.hasPrevious() ? 'disabled' : ''}"
                th:disabled="${!formPage.hasPrevious()}">
                 &laquo; Previous
             </a>
             <!-- Numbered pages could be added here if desired -->
-            <a th:href="@{/admin/forms(page=${formPage.number+1}, size=${formPage.size}, name=${currentName}, status=${currentStatus})}"
+            <a th:href="@{/admin/forms-ui(page=${formPage.number+1}, size=${formPage.size}, name=${currentName}, status=${currentStatus})}"
                class="btn" th:classappend="${!formPage.hasNext() ? 'disabled' : ''}"
                th:disabled="${!formPage.hasNext()}">
                 Next &raquo;
@@ -249,7 +249,7 @@
     const baseUrl = window.location.origin;
     // Link to dynamic_form_renderer for filling (assumed to be at /questionnaires/fill?formId=)
     // This should ideally point to a public-facing fill page, not admin preview
-    const fillUrl = `${baseUrl}/questionnaires/fill?formId=${formId}`;
+    const fillUrl = `${baseUrl}/forms-ui/${formId}`;
     shareableLinkInput.value = fillUrl;
 
     qrCodeImageDiv.innerHTML = '<span style="font-size: var(--font-size-xs); color: var(--text-tertiary);">Generating QR...</span>';

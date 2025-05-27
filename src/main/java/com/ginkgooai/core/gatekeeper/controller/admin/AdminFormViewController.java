@@ -3,15 +3,15 @@ package com.ginkgooai.core.gatekeeper.controller.admin;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ginkgooai.core.gatekeeper.domain.FormDefinition;
+import com.ginkgooai.core.gatekeeper.domain.QuestionnaireResult;
 import com.ginkgooai.core.gatekeeper.dto.*;
 import com.ginkgooai.core.gatekeeper.dto.request.CreateFormDefinitionRequest;
 import com.ginkgooai.core.gatekeeper.dto.request.UpdateFieldDefinitionRequest;
 import com.ginkgooai.core.gatekeeper.dto.request.UpdateSectionDefinitionRequest;
 import com.ginkgooai.core.gatekeeper.dto.request.UpdateValidationRuleRequest;
 import com.ginkgooai.core.gatekeeper.exception.ResourceNotFoundException;
+import com.ginkgooai.core.gatekeeper.repository.QuestionnaireResponseRepository;
 import com.ginkgooai.core.gatekeeper.service.FormDefinitionService;
-import com.ginkgooai.core.gatekeeper.service.FormImageProcessingService;
-import com.ginkgooai.core.gatekeeper.util.FormRenderingHelper;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,43 +20,35 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 @Controller
-@RequestMapping("/admin/forms")
-public class FormAdminController {
+@RequestMapping("/admin/forms-ui")
+public class AdminFormViewController {
 
-	private static final Logger log = LoggerFactory.getLogger(FormAdminController.class);
+	private static final Logger log = LoggerFactory.getLogger(AdminFormViewController.class);
 
 	private final FormDefinitionService formDefinitionService;
 
-	private final FormImageProcessingService formImageProcessingService;
-
-	private final FormRenderingHelper formRenderingHelper;
-
 	private final ObjectMapper objectMapper;
 
+	private final QuestionnaireResponseRepository questionnaireResponseRepository;
+
 	@Autowired
-	public FormAdminController(FormDefinitionService formDefinitionService,
-			FormImageProcessingService formImageProcessingService, FormRenderingHelper formRenderingHelper,
-			ObjectMapper objectMapper) {
+	public AdminFormViewController(FormDefinitionService formDefinitionService,
+			QuestionnaireResponseRepository questionnaireResponseRepository, ObjectMapper objectMapper) {
 		this.formDefinitionService = formDefinitionService;
-		this.formImageProcessingService = formImageProcessingService;
-		this.formRenderingHelper = formRenderingHelper;
+		this.questionnaireResponseRepository = questionnaireResponseRepository;
 		this.objectMapper = objectMapper;
 	}
 
@@ -144,7 +136,7 @@ public class FormAdminController {
 			model.addAttribute("formId", formId);
 			model.addAttribute("viewMode", "preview");
 
-			return "questionnaire/dynamic_form_renderer";
+			return "dynamic_form_renderer";
 		}
 		catch (ResourceNotFoundException e) {
 			log.warn("Form definition not found for preview with ID: {}. Redirecting.", formId, e);
@@ -192,11 +184,6 @@ public class FormAdminController {
 		}
 
 		try {
-			// The JSON validation try-catch block for initialLogic and submissionLogic
-			// will
-			// be removed.
-			// The fields in 'request' are already JsonNode if binding was successful.
-
 			formDefinitionService.updateFormDefinition(id, request);
 			log.info("Successfully updated form with ID: {}", id);
 			return "redirect:/admin/forms?success=updated";
@@ -254,7 +241,6 @@ public class FormAdminController {
 				model.addAttribute("createRequest", request);
 			}
 
-			// 添加枚举类型到model中
 			addEnumTypesToModel(model);
 
 			return "admin/form-create-buffer";
@@ -300,34 +286,6 @@ public class FormAdminController {
 		}
 		return "redirect:/admin/forms";
 	}
-
-	@PostMapping(value = "/import-image", produces = MediaType.APPLICATION_JSON_VALUE)
-	@ResponseBody // Important: This endpoint returns JSON directly
-	public ResponseEntity<?> handleImageImport(@RequestParam("imageFile") MultipartFile imageFile) {
-		if (imageFile.isEmpty()) {
-			return ResponseEntity.badRequest().body(Map.of("error", "Image file is empty"));
-		}
-
-		try {
-			log.info("Processing image import: {}", imageFile.getOriginalFilename());
-			String generatedJson = formImageProcessingService.processImageToFormJson(imageFile);
-			log.info("Generated JSON from image: {}", generatedJson);
-			// The client-side JS expects a JSON object or a string that is JSON.
-			// We return the raw string from the LLM, assuming it's valid JSON.
-			return ResponseEntity.ok(generatedJson);
-		}
-		catch (IOException e) {
-			log.error("IO Error processing image: {}", imageFile.getOriginalFilename(), e);
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-				.body(Map.of("error", "IO error processing image: " + e.getMessage()));
-		}
-		catch (Exception e) {
-			log.error("Error processing image with AI: {}", imageFile.getOriginalFilename(), e);
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-				.body(Map.of("error", "Failed to process image with AI: " + e.getMessage()));
-		}
-	}
-
 	/**
 	 * Populates the model with form definition details for the edit view. This method
 	 * fetches the form definition, sets up the update request object if not provided, and
@@ -428,6 +386,40 @@ public class FormAdminController {
 		addEnumTypesToModel(model);
 
 		return "admin/form-edit-buffer";
+	}
+
+	@GetMapping("/{formId}/results")
+	public String showFormResultsPage(@PathVariable String formId, Model model) {
+		log.info("Request to show results for questionnaire formId: {}", formId);
+		try {
+			FormDefinitionDTO formDefinition = formDefinitionService.findFormDefinitionById(formId)
+				.orElseThrow(() -> new ResourceNotFoundException("FormDefinition", "id", formId));
+
+			if (formDefinition.getFormType() != com.ginkgooai.core.gatekeeper.enums.FormType.QUESTIONNAIRE) {
+				log.warn("Attempted to view results for a non-questionnaire form: {} (Type: {})", formId,
+						formDefinition.getFormType());
+				model.addAttribute("errorMessage",
+						"This form is not a questionnaire, so results cannot be displayed in this view.");
+			}
+
+			List<QuestionnaireResult> results = questionnaireResponseRepository.findByFormDefinitionId(formId);
+
+			model.addAttribute("formDefinition", formDefinition);
+			model.addAttribute("questionnaireResults", results);
+			model.addAttribute("objectMapper", objectMapper);
+			return "admin/form-results";
+		}
+		catch (ResourceNotFoundException e) {
+			log.warn("Form definition not found when trying to show results: {}", formId);
+			model.addAttribute("errorMessage", "Form definition with ID " + formId + " not found.");
+			return "redirect:/admin/forms?error=notfound"; // Redirect to form list or an
+			// error page
+		}
+		catch (Exception e) {
+			log.error("Error retrieving questionnaire results for formId {}: {}", formId, e.getMessage(), e);
+			model.addAttribute("errorMessage", "An unexpected error occurred while retrieving results.");
+			return "redirect:/admin/forms?error=servererror";
+		}
 	}
 
 	/**

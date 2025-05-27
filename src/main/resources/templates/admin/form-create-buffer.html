@@ -104,7 +104,7 @@
                  alt="Logo" class="logo"/>
             <h1>Ginkgoo AI Gateway Keeper</h1>
         </div>
-        <a th:href="@{/admin/forms}" class="btn btn-secondary">Back to List</a>
+        <a th:href="@{/admin/forms-ui}" class="btn btn-secondary">Back to List</a>
     </header>
 
     <div class="card">
@@ -960,7 +960,7 @@
     formData.append('imageFile', selectedImageFile);
 
     try {
-      const response = await fetch('/admin/forms/import-image', {
+      const response = await fetch('/forms/file', {
         method: 'POST',
         body: formData
       });
