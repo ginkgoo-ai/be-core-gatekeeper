@@ -3,6 +3,7 @@ CREATE TABLE gatekeeper.form_definitions
 (
     id              VARCHAR(36) PRIMARY KEY,
     name            VARCHAR(255) NOT NULL,
+    form_type VARCHAR(255) NOT NULL DEFAULT 'GENERIC_FORM',
     description     VARCHAR(1000),
     status          VARCHAR(50)  NOT NULL DEFAULT 'DRAFT',
     version         VARCHAR(50)  NOT NULL DEFAULT '1.0.0',
@@ -25,7 +26,6 @@ CREATE TABLE gatekeeper.section_definitions
 (
     id                 VARCHAR(36) PRIMARY KEY,
     title              VARCHAR(255) NOT NULL,
-    form_type          VARCHAR(255) NOT NULL DEFAULT 'GENERIC_FORM',
     display_order      INT,
     condition          VARCHAR(1000),
     form_definition_id VARCHAR(36)  NOT NULL,
