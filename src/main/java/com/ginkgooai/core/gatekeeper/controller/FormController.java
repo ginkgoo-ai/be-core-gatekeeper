@@ -40,7 +40,7 @@ public class FormController {
 	private final QuestionnaireService questionnaireService;
 
 	private final UserClient userClient;
-	
+
 	private final RestTemplate restTemplate;
 
 	@Autowired
@@ -178,8 +178,7 @@ public class FormController {
 			log.info("Form submission received: form={}, userId={}", formId, userId);
 
 			// 1. Get form definition - first try as ID
-			Optional<FormDefinitionDTO> formDefinitionOpt = formDefinitionService
-				.findFormDefinitionById(formId);
+			Optional<FormDefinitionDTO> formDefinitionOpt = formDefinitionService.findFormDefinitionById(formId);
 
 			// If not found by ID, try by name
 			if (formDefinitionOpt.isEmpty()) {
@@ -273,7 +272,7 @@ public class FormController {
 				labelBasedResponses.size());
 		return labelBasedResponses;
 	}
-	
+
 	/**
 	 * Process form submission according to the form definition's submission logic
 	 */

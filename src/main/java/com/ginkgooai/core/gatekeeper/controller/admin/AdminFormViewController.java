@@ -286,6 +286,7 @@ public class AdminFormViewController {
 		}
 		return "redirect:/admin/forms";
 	}
+
 	/**
 	 * Populates the model with form definition details for the edit view. This method
 	 * fetches the form definition, sets up the update request object if not provided, and
