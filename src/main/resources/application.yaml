@@ -1,7 +1,7 @@
 core-identity-uri: ${SERVICE_SCHEME}://${CORE_IDENTITY_HOST}:${CORE_IDENTITY_PORT}
 
 server:
-  port: ${CORE_GATEKEEPER_PORT}
+  port: ${SERVER_PORT:8080}
   shutdown: graceful
 
 spring:
